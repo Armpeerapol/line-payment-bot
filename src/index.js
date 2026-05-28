@@ -123,7 +123,15 @@ async function handlePostback(event, userId) {
 
     case 'select_topic_id': {
       const topicId = params.get('topic_id');
-      const topicName = decodeURIComponent(params.get('topic_name'));
+
+      // ดึงข้อมูลหัวข้อจาก DB (แทนที่จะรับจาก postback เพื่อป้องกัน data เกิน 300 ตัว)
+      const { data: topic } = await supabase
+        .from('payment_topics')
+        .select('id, title')
+        .eq('id', topicId)
+        .single();
+
+      const topicName = topic?.title || '';
 
       // ดึงรายชื่อนักเรียน
       const { data: students } = await supabase
@@ -145,8 +153,16 @@ async function handlePostback(event, userId) {
 
     case 'select_student': {
       const studentId = params.get('student_id');
-      const studentName = decodeURIComponent(params.get('student_name'));
       const topicId = params.get('topic_id');
+
+      // ดึงข้อมูลนักเรียนและหัวข้อจาก DB
+      const { data: studentData } = await supabase
+        .from('students')
+        .select('id, name')
+        .eq('id', studentId)
+        .single();
+
+      const studentName = studentData?.name || '';
 
       // ดึงข้อมูลหัวข้อ
       const { data: topic } = await supabase

@@ -131,7 +131,7 @@ function topicSelector(topics) {
           action: {
             type: 'postback',
             label: 'เลือกหัวข้อนี้',
-            data: `action=select_topic_id&topic_id=${topic.id}&topic_name=${encodeURIComponent(topic.title)}`
+            data: `action=select_topic_id&topic_id=${topic.id}`
           },
           height: 'sm'
         }
@@ -165,8 +165,8 @@ function studentSelector(students, topicId, topicName) {
     type: 'action',
     action: {
       type: 'postback',
-      label: s.nickname ? `${s.nickname}` : s.name.substring(0, 20),
-      data: `action=select_student&student_id=${s.id}&student_name=${encodeURIComponent(s.name)}&topic_id=${topicId}`
+      label: s.nickname ? s.nickname.substring(0, 20) : s.name.substring(0, 20),
+      data: `action=select_student&student_id=${s.id}&topic_id=${topicId}`
     }
   }));
 
