@@ -371,6 +371,34 @@ app.get('/admin/dashboard', adminAuth, async (req, res) => {
   res.json(data);
 });
 
+// ลบนักเรียน
+app.delete('/admin/students/:id', adminAuth, async (req, res) => {
+  const { error } = await supabase.from('students').delete().eq('id', req.params.id);
+  if (error) return res.status(400).json({ error });
+  res.json({ success: true });
+});
+
+// ลบหัวข้อ
+app.delete('/admin/topics/:id', adminAuth, async (req, res) => {
+  const { error } = await supabase.from('payment_topics').delete().eq('id', req.params.id);
+  if (error) return res.status(400).json({ error });
+  res.json({ success: true });
+});
+
+// ดึงรายชื่อนักเรียนทั้งหมด
+app.get('/admin/students', adminAuth, async (req, res) => {
+  const { data, error } = await supabase.from('students').select('*').eq('is_active', true).order('name');
+  if (error) return res.status(400).json({ error });
+  res.json(data);
+});
+
+// ดึงหัวข้อทั้งหมด
+app.get('/admin/topics', adminAuth, async (req, res) => {
+  const { data, error } = await supabase.from('payment_topics').select('*').eq('is_active', true).order('created_at', { ascending: false });
+  if (error) return res.status(400).json({ error });
+  res.json(data);
+});
+
 // อนุมัติ/ปฏิเสธสลิป
 app.patch('/admin/payments/:id', adminAuth, async (req, res) => {
   const { status, note } = req.body;
