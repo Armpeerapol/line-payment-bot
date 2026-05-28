@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แดชบอร์ด · สภานักเรียน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #2E7D32;
+    --green-light: #43A047;
+    --green-pale: #E8F5E9;
+    --blue: #1565C0;
+    --blue-pale: #E3F2FD;
+    --orange: #E65100;
+    --orange-pale: #FFF3E0;
+    --red: #C62828;
+    --red-pale: #FFEBEE;
+    --gray-50: #FAFAFA;
+    --gray-100: #F5F5F5;
+    --gray-200: #EEEEEE;
+    --gray-400: #BDBDBD;
+    --gray-600: #757575;
+    --gray-800: #424242;
+    --gray-900: #212121;
+    --shadow: 0 2px 8px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--gray-100);
+    color: var(--gray-900);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--green);
+    color: white;
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  .header-title { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+  .header-actions { display: flex; gap: 12px; align-items: center; }
+  .btn-header {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-header:hover { background: rgba(255,255,255,0.25); }
+
+  /* ── Login ── */
+  .login-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 50%, #1565C0 100%);
+  }
+  .login-card {
+    background: white;
+    padding: 48px 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    width: 360px;
+    text-align: center;
+  }
+  .login-card h1 { font-size: 28px; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+  .login-card p { color: var(--gray-600); margin-bottom: 32px; font-size: 15px; }
+  .input-field {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--gray-200);
+    border-radius: 10px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 15px;
+    transition: border-color .2s;
+    margin-bottom: 16px;
+  }
+  .input-field:focus { outline: none; border-color: var(--green); }
+  .btn-primary {
+    width: 100%;
+    padding: 13px;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-primary:hover { background: var(--green-light); }
+
+  /* ── Main Layout ── */
+  .main { max-width: 1200px; margin: 0 auto; padding: 24px 16px; }
+
+  /* ── Stats Bar ── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat-num { font-size: 32px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+  .stat-label { font-size: 13px; color: var(--gray-600); }
+  .stat-paid .stat-num { color: var(--green); }
+  .stat-pending .stat-num { color: var(--orange); }
+  .stat-unpaid .stat-num { color: var(--red); }
+  .stat-total .stat-num { color: var(--blue); }
+
+  /* ── Controls ── */
+  .controls {
+    background: white;
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 20px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .controls select, .controls input {
+    padding: 9px 14px;
+    border: 2px solid var(--gray-200);
+    border-radius: 8px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    background: white;
+    color: var(--gray-900);
+    transition: border-color .2s;
+    flex: 1;
+    min-width: 160px;
+  }
+  .controls select:focus, .controls input:focus { outline: none; border-color: var(--green); }
+  .btn-action {
+    padding: 9px 18px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .btn-green { background: var(--green); color: white; }
+  .btn-green:hover { background: var(--green-light); }
+  .btn-outline { background: white; color: var(--gray-800); border: 2px solid var(--gray-200); }
+  .btn-outline:hover { border-color: var(--gray-400); }
+
+  /* ── Table ── */
+  .table-wrap {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .table-header {
+    padding: 16px 20px;
+    border-bottom: 2px solid var(--gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .table-title { font-size: 16px; font-weight: 700; }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--gray-50);
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  td {
+    padding: 13px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+  }
+  tr:hover td { background: var(--gray-50); }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── Badge ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-approved { background: var(--green-pale); color: var(--green); }
+  .badge-pending { background: var(--orange-pale); color: var(--orange); }
+  .badge-rejected { background: var(--red-pale); color: var(--red); }
+  .badge-not_paid { background: var(--gray-100); color: var(--gray-600); }
+
+  /* ── Slip Preview ── */
+  .slip-thumb {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    object-fit: cover;
+    cursor: pointer;
+    border: 2px solid var(--gray-200);
+    transition: transform .2s;
+  }
+  .slip-thumb:hover { transform: scale(1.1); border-color: var(--green); }
+
+  /* ── Action Buttons ── */
+  .btn-approve {
+    padding: 5px 12px;
+    border-radius: 6px;
+    border: none;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    margin-right: 4px;
+  }
+  .btn-approve-yes { background: var(--green-pale); color: var(--green); }
+  .btn-approve-yes:hover { background: var(--green); color: white; }
+  .btn-approve-no { background: var(--red-pale); color: var(--red); }
+  .btn-approve-no:hover { background: var(--red); color: white; }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    background: var(--gray-100);
+    padding: 4px;
+    border-radius: 10px;
+  }
+  .tab {
+    padding: 7px 16px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all .2s;
+    background: transparent;
+    color: var(--gray-600);
+    font-weight: 500;
+  }
+  .tab.active { background: white; color: var(--gray-900); font-weight: 700; box-shadow: var(--shadow); }
+
+  /* ── Modal ── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .2s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal {
+    background: white;
+    border-radius: 16px;
+    padding: 28px;
+    max-width: 480px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    transform: scale(0.95);
+    transition: transform .2s;
+  }
+  .modal-overlay.show .modal { transform: scale(1); }
+  .modal h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; }
+  .modal img { width: 100%; border-radius: 10px; margin-bottom: 16px; max-height: 400px; object-fit: contain; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-actions button { flex: 1; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { font-size: 13px; font-weight: 600; color: var(--gray-600); margin-bottom: 5px; display: block; }
+  .modal .input-field { margin-bottom: 0; }
+
+  /* ── Progress Bar ── */
+  .progress-wrap { margin-bottom: 8px; }
+  .progress-bar-outer { height: 8px; background: var(--gray-200); border-radius: 99px; overflow: hidden; }
+  .progress-bar-inner { height: 100%; background: var(--green); border-radius: 99px; transition: width .5s; }
+  .progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--gray-600); margin-bottom: 4px; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--gray-900);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    z-index: 9999;
+    transform: translateY(20px);
+    opacity: 0;
+    transition: all .3s;
+    box-shadow: var(--shadow-lg);
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.success { background: var(--green); }
+  .toast.error { background: var(--red); }
+
+  /* ── Empty ── */
+  .empty { padding: 60px 20px; text-align: center; color: var(--gray-400); }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+  /* ── Spinner ── */
+  .spinner {
+    display: inline-block;
+    width: 20px; height: 20px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin .8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Admin Panel (Add Student / Topic) ── */
+  .panel-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  @media (max-width: 640px) { .panel-grid { grid-template-columns: 1fr; } }
+  .panel-card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 20px;
+  }
+  .panel-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .controls { flex-direction: column; }
+    .controls select, .controls input { min-width: unset; }
+    td, th { font-size: 13px; padding: 10px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-wrap" id="loginPage">
+  <div class="login-card">
+    <div style="font-size:48px;margin-bottom:12px">🏫</div>
+    <h1>สภานักเรียน</h1>
+    <p>แดชบอร์ดผู้ดูแลระบบ</p>
+    <input type="password" class="input-field" id="adminPassword" placeholder="รหัสผ่านแอดมิน" />
+    <input type="text" class="input-field" id="adminKey" placeholder="Admin Secret Key" />
+    <button class="btn-primary" onclick="doLogin()">เข้าสู่ระบบ</button>
+    <p id="loginError" style="color:var(--red);font-size:13px;margin-top:12px;display:none">รหัสผ่านไม่ถูกต้อง</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" style="display:none">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-title">🏫 สภานักเรียน · แดชบอร์ด</div>
+    <div class="header-actions">
+      <button class="btn-header" onclick="showTab('dashboard')">📊 แดชบอร์ด</button>
+      <button class="btn-header" onclick="showTab('manage')">⚙️ จัดการ</button>
+      <button class="btn-header" onclick="logout()">ออกจากระบบ</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- ── DASHBOARD TAB ── -->
+    <div id="tab-dashboard">
+      <!-- Stats -->
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <!-- Controls -->
+      <div class="controls">
+        <select id="topicFilter" onchange="loadDashboard()">
+          <option value="">📋 ทุกหัวข้อ</option>
+        </select>
+        <div class="tabs">
+          <button class="tab active" onclick="filterStatus('all',this)">ทั้งหมด</button>
+          <button class="tab" onclick="filterStatus('not_paid',this)">❌ ยังไม่จ่าย</button>
+          <button class="tab" onclick="filterStatus('pending',this)">⏳ รอตรวจ</button>
+          <button class="tab" onclick="filterStatus('approved',this)">✅ อนุมัติ</button>
+        </div>
+        <input type="text" id="searchInput" placeholder="🔍 ค้นหาชื่อ..." oninput="renderTable()" />
+        <button class="btn-action btn-outline" onclick="exportCSV()">📥 ดาวน์โหลด CSV</button>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title" id="tableTitle">รายการชำระเงินทั้งหมด</div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ชื่อ</th>
+                <th>หัวข้อ</th>
+                <th>จำนวน</th>
+                <th>สถานะ</th>
+                <th>สลิป</th>
+                <th>เวลา</th>
+                <th>จัดการ</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+        <div id="emptyState" class="empty" style="display:none">
+          <div class="empty-icon">📭</div>
+          <div>ไม่พบข้อมูล</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── MANAGE TAB ── -->
+    <div id="tab-manage" style="display:none">
+      <div class="panel-grid">
+        <!-- Add Student -->
+        <div class="panel-card">
+          <h3>👤 เพิ่มนักเรียน</h3>
+          <div class="form-group">
+            <label class="form-label">ชื่อ-นามสกุล *</label>
+            <input type="text" class="input-field" id="newStudentName" placeholder="เช่น นายสมชาย ใจดี" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">ชื่อเล่น (แสดงใน Quick Reply)</label>
+            <input type="text" class="input-field" id="newStudentNickname" placeholder="เช่น โอ๊ต" />
+          </div>
+          <button class="btn-action btn-green" style="width:100%" onclick="addStudent()">+ เพิ่มนักเรียน</button>
+          <div id="studentList" style="margin-top:16px"></div>
+        </div>
+
+        <!-- Add Topic -->
+        <div class="panel-card">
+          <h3>📋 เพิ่มหัวข้อการชำระเงิน</h3>
+          <div class="form-group">
+            <label class="form-label">หัวข้อ *</label>
+            <input type="text" class="input-field" id="newTopicTitle" placeholder="เช่น ค่ากิจกรรมทัศนศึกษา" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">จำนวนเงิน (บาท)</label>
+            <input type="number" class="input-field" id="newTopicAmount" placeholder="เช่น 200" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">วันครบกำหนด</label>
+            <input type="date" class="input-field" id="newTopicDue" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">รายละเอียด</label>
+            <input type="text" class="input-field" id="newTopicDesc" placeholder="รายละเอียดเพิ่มเติม..." />
+          </div>
+          <button class="btn-action btn-green" style="width:100%" onclick="addTopic()">+ เพิ่มหัวข้อ</button>
+          <div id="topicList" style="margin-top:16px"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- SLIP MODAL -->
+<div class="modal-overlay" id="slipModal">
+  <div class="modal">
+    <h2>📸 ตรวจสอบสลิป</h2>
+    <img id="slipImg" src="" alt="สลิป" />
+    <div id="slipInfo" style="font-size:14px;color:var(--gray-600);margin-bottom:8px"></div>
+    <div class="modal-actions">
+      <button class="btn-action btn-approve btn-approve-yes" style="flex:1;padding:10px" onclick="reviewPayment('approved')">✅ อนุมัติ</button>
+      <button class="btn-action btn-approve btn-approve-no" style="flex:1;padding:10px" onclick="reviewPayment('rejected')">❌ ปฏิเสธ</button>
+      <button class="btn-action btn-outline" style="flex:0.6;padding:10px" onclick="closeModal()">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+let ADMIN_KEY = '';
+let allData = [];
+let currentStatus = 'all';
+let currentPaymentId = null;
+
+// ── Login ──
+function doLogin() {
+  const pw = document.getElementById('adminPassword').value;
+  const key = document.getElementById('adminKey').value;
+  if (!pw || !key) { showToast('กรุณากรอกรหัสผ่านและ Secret Key', 'error'); return; }
+  ADMIN_KEY = key;
+  // ทดสอบด้วยการ fetch dashboard
+  fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } })
+    .then(r => {
+      if (r.ok) {
+        localStorage.setItem('adminKey', ADMIN_KEY);
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        init();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    });
+}
+
+function logout() {
+  localStorage.removeItem('adminKey');
+  location.reload();
+}
+
+// ── Init ──
+async function init() {
+  const saved = localStorage.getItem('adminKey');
+  if (saved) {
+    ADMIN_KEY = saved;
+    const r = await fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } });
+    if (r.ok) {
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('mainApp').style.display = 'block';
+    } else {
+      localStorage.removeItem('adminKey');
+      return;
+    }
+  }
+  loadDashboard();
+  loadTopicFilter();
+  loadManageLists();
+}
+
+// ── Tabs ──
+function showTab(tab) {
+  document.getElementById('tab-dashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
+  document.getElementById('tab-manage').style.display = tab === 'manage' ? 'block' : 'none';
+  if (tab === 'manage') loadManageLists();
+}
+
+// ── Dashboard ──
+async function loadDashboard() {
+  const topicId = document.getElementById('topicFilter').value;
+  const url = '/admin/dashboard' + (topicId ? `?topic_id=${topicId}` : '');
+  const r = await fetch(url, { headers: { 'x-admin-key': ADMIN_KEY } });
+  allData = await r.json();
+  renderStats();
+  renderTable();
+}
+
+function renderStats() {
+  const total = allData.length;
+  const paid = allData.filter(d => d.status === 'approved').length;
+  const pending = allData.filter(d => d.status === 'pending').length;
+  const unpaid = allData.filter(d => d.status === 'not_paid').length;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card stat-total">
+      <div class="stat-num">${total}</div>
+      <div class="stat-label">รายการทั้งหมด</div>
+    </div>
+    <div class="stat-card stat-paid">
+      <div class="stat-num">${paid}</div>
+      <div class="stat-label">✅ จ่ายแล้ว</div>
+      <div class="progress-wrap" style="margin-top:8px">
+        <div class="progress-bar-outer">
+          <div class="progress-bar-inner" style="width:${total ? (paid/total*100) : 0}%"></div>
+        </div>
+      </div>
+    </div>
+    <div class="stat-card stat-pending">
+      <div class="stat-num">${pending}</div>
+      <div class="stat-label">⏳ รอตรวจสอบ</div>
+    </div>
+    <div class="stat-card stat-unpaid">
+      <div class="stat-num">${unpaid}</div>
+      <div class="stat-label">❌ ยังไม่จ่าย</div>
+    </div>
+  `;
+}
+
+function filterStatus(status, btn) {
+  currentStatus = status;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function renderTable() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let data = allData;
+
+  if (currentStatus !== 'all') data = data.filter(d => d.status === currentStatus);
+  if (search) data = data.filter(d => d.student_name.toLowerCase().includes(search));
+
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyState');
+
+  if (data.length === 0) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  const badgeMap = {
+    approved: '<span class="badge badge-approved">✅ จ่ายแล้ว</span>',
+    pending: '<span class="badge badge-pending">⏳ รอตรวจ</span>',
+    rejected: '<span class="badge badge-rejected">❌ ปฏิเสธ</span>',
+    not_paid: '<span class="badge badge-not_paid">— ยังไม่จ่าย</span>'
+  };
+
+  tbody.innerHTML = data.map((d, i) => `
+    <tr>
+      <td style="color:var(--gray-400);font-family:'IBM Plex Mono',monospace;font-size:12px">${i+1}</td>
+      <td><strong>${d.student_name}</strong></td>
+      <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.topic_title}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:var(--green)">
+        ${d.amount ? Number(d.amount).toLocaleString('th-TH') + ' ฿' : '—'}
+      </td>
+      <td>${badgeMap[d.status] || d.status}</td>
+      <td>
+        ${d.slip_url
+          ? `<img class="slip-thumb" src="${d.slip_url}" onclick="openSlip('${d.slip_url}','${d.payment_id}','${d.student_name}','${d.topic_title}')" />`
+          : '<span style="color:var(--gray-400);font-size:13px">—</span>'}
+      </td>
+      <td style="font-size:12px;color:var(--gray-600)">
+        ${d.submitted_at ? new Date(d.submitted_at).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}) : '—'}
+      </td>
+      <td>
+        ${d.status === 'pending' ? `
+          <button class="btn-approve btn-approve-yes" onclick="quickReview('${d.payment_id}','approved')">✅</button>
+          <button class="btn-approve btn-approve-no" onclick="quickReview('${d.payment_id}','rejected')">❌</button>
+        ` : '—'}
+      </td>
+    </tr>
+  `).join('');
+}
+
+// ── Review ──
+function openSlip(url, paymentId, name, topic) {
+  currentPaymentId = paymentId;
+  document.getElementById('slipImg').src = url;
+  document.getElementById('slipInfo').innerHTML = `👤 ${name} &nbsp;·&nbsp; 📋 ${topic}`;
+  document.getElementById('slipModal').classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('slipModal').classList.remove('show');
+  currentPaymentId = null;
+}
+
+async function reviewPayment(status) {
+  if (!currentPaymentId) return;
+  await doReview(currentPaymentId, status);
+  closeModal();
+}
+
+async function quickReview(paymentId, status) {
+  await doReview(paymentId, status);
+}
+
+async function doReview(paymentId, status) {
+  const r = await fetch(`/admin/payments/${paymentId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
+    body: JSON.stringify({ status })
+  });
+  if (r.ok) {
+    showToast(status === 'approved' ? '✅ อนุมัติสำเร็จ' : '❌ ปฏิเสธแล้ว', status === 'approved' ? 'success' : 'error');
+    loadDashboard();
+  }
+}
+
+// ── Topic Filter ──
+async function loadTopicFilter() {
+  const r = await fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } });
+  const data = await r.json();
+  const topics = [...new Map(data.map(d => [d.topic_id, d])).values()];
+  const sel = document.getElementById('topicFilter');
+  const curr = sel.value;
+  sel.innerHTML = '<option value="">📋 ทุกหัวข้อ</option>' +
+    topics.map(t => `<option value="${t.topic_id}">${t.topic_title}</option>`).join('');
+  sel.value = curr;
+}
+
+// ── Manage ──
+async function addStudent() {
+  const name = document.getElementById('newStudentName').value.trim();
+  const nickname = document.getElementById('newStudentNickname').value.trim();
+  if (!name) { showToast('กรุณากรอกชื่อ', 'error'); return; }
+  const r = await fetch('/admin/students', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
+    body: JSON.stringify({ name, nickname })
+  });
+  if (r.ok) {
+    showToast('✅ เพิ่มนักเรียนแล้ว', 'success');
+    document.getElementById('newStudentName').value = '';
+    document.getElementById('newStudentNickname').value = '';
+    loadManageLists();
+  } else {
+    showToast('เกิดข้อผิดพลาด', 'error');
+  }
+}
+
+async function addTopic() {
+  const title = document.getElementById('newTopicTitle').value.trim();
+  const amount = document.getElementById('newTopicAmount').value;
+  const due_date = document.getElementById('newTopicDue').value || null;
+  const description = document.getElementById('newTopicDesc').value.trim();
+  if (!title) { showToast('กรุณากรอกหัวข้อ', 'error'); return; }
+  const r = await fetch('/admin/topics', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
+    body: JSON.stringify({ title, amount: amount || null, due_date, description })
+  });
+  if (r.ok) {
+    showToast('✅ เพิ่มหัวข้อแล้ว', 'success');
+    ['newTopicTitle','newTopicAmount','newTopicDue','newTopicDesc'].forEach(id => document.getElementById(id).value = '');
+    loadManageLists();
+    loadTopicFilter();
+  } else {
+    showToast('เกิดข้อผิดพลาด', 'error');
+  }
+}
+
+async function loadManageLists() {
+  const r = await fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } });
+  const data = await r.json();
+
+  // Students
+  const students = [...new Map(data.map(d => [d.student_id, d.student_name])).values()];
+  document.getElementById('studentList').innerHTML = students.length
+    ? `<div style="font-size:12px;color:var(--gray-600);margin-bottom:8px">รายชื่อปัจจุบัน (${students.length} คน)</div>` +
+      students.map(([id,name]) => `<div style="padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:13px">👤 ${name}</div>`).join('')
+    : '<div style="font-size:13px;color:var(--gray-400)">ยังไม่มีนักเรียน</div>';
+
+  // Topics
+  const topics = [...new Map(data.map(d => [d.topic_id, {title:d.topic_title,amount:d.amount,due:d.due_date}])).values()];
+  document.getElementById('topicList').innerHTML = topics.length
+    ? `<div style="font-size:12px;color:var(--gray-600);margin-bottom:8px">หัวข้อปัจจุบัน (${topics.length} หัวข้อ)</div>` +
+      topics.map(([id,t]) => `<div style="padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:13px">📋 ${t.title}${t.amount ? ` · ${Number(t.amount).toLocaleString('th-TH')} ฿` : ''}</div>`).join('')
+    : '<div style="font-size:13px;color:var(--gray-400)">ยังไม่มีหัวข้อ</div>';
+}
+
+// ── Export CSV ──
+function exportCSV() {
+  const headers = ['ชื่อ','หัวข้อ','จำนวน','สถานะ','เวลาส่ง'];
+  const rows = allData.map(d => [
+    d.student_name, d.topic_title,
+    d.amount || '', d.status,
+    d.submitted_at ? new Date(d.submitted_at).toLocaleString('th-TH') : ''
+  ]);
+  const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `payment_${Date.now()}.csv`; a.click();
+}
+
+// ── Toast ──
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ── Auto login from localStorage ──
+window.onload = () => {
+  const saved = localStorage.getItem('adminKey');
+  if (saved) {
+    ADMIN_KEY = saved;
+    fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } }).then(r => {
+      if (r.ok) {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        loadDashboard();
+        loadTopicFilter();
+      } else {
+        localStorage.removeItem('adminKey');
+      }
+    });
+  }
+};
+
+// Close modal on overlay click
+document.getElementById('slipModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('slipModal')) closeModal();
+});
+
+// Enter to login
+document.getElementById('adminKey').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>
