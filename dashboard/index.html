@@ -770,22 +770,54 @@ async function addTopic() {
 }
 
 async function loadManageLists() {
-  const r = await fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } });
-  const data = await r.json();
-
   // Students
-  const students = [...new Map(data.map(d => [d.student_id, d.student_name])).values()];
+  const rs = await fetch('/admin/students', { headers: { 'x-admin-key': ADMIN_KEY } });
+  const students = await rs.json();
   document.getElementById('studentList').innerHTML = students.length
     ? `<div style="font-size:12px;color:var(--gray-600);margin-bottom:8px">รายชื่อปัจจุบัน (${students.length} คน)</div>` +
-      students.map(([id,name]) => `<div style="padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:13px">👤 ${name}</div>`).join('')
+      students.map(s => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--gray-100)">
+          <span style="font-size:13px">👤 ${s.name}${s.nickname ? ` <span style="color:var(--gray-400)">(${s.nickname})</span>` : ''}</span>
+          <button onclick="deleteStudent('${s.id}','${s.name}')" style="background:var(--red-pale);color:var(--red);border:none;border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer;font-family:'Sarabun',sans-serif">ลบ</button>
+        </div>`).join('')
     : '<div style="font-size:13px;color:var(--gray-400)">ยังไม่มีนักเรียน</div>';
 
   // Topics
-  const topics = [...new Map(data.map(d => [d.topic_id, {title:d.topic_title,amount:d.amount,due:d.due_date}])).values()];
+  const rt = await fetch('/admin/topics', { headers: { 'x-admin-key': ADMIN_KEY } });
+  const topics = await rt.json();
   document.getElementById('topicList').innerHTML = topics.length
     ? `<div style="font-size:12px;color:var(--gray-600);margin-bottom:8px">หัวข้อปัจจุบัน (${topics.length} หัวข้อ)</div>` +
-      topics.map(([id,t]) => `<div style="padding:6px 0;border-bottom:1px solid var(--gray-100);font-size:13px">📋 ${t.title}${t.amount ? ` · ${Number(t.amount).toLocaleString('th-TH')} ฿` : ''}</div>`).join('')
+      topics.map(t => `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--gray-100)">
+          <span style="font-size:13px">📋 ${t.title}${t.amount ? ` <span style="color:var(--green)">· ${Number(t.amount).toLocaleString('th-TH')} ฿</span>` : ''}</span>
+          <button onclick="deleteTopic('${t.id}','${t.title}')" style="background:var(--red-pale);color:var(--red);border:none;border-radius:6px;padding:3px 10px;font-size:12px;cursor:pointer;font-family:'Sarabun',sans-serif">ลบ</button>
+        </div>`).join('')
     : '<div style="font-size:13px;color:var(--gray-400)">ยังไม่มีหัวข้อ</div>';
+}
+
+async function deleteStudent(id, name) {
+  if (!confirm(`ลบ "${name}" ออกจากระบบ?\n\nข้อมูลการชำระเงินของนักเรียนคนนี้จะถูกลบด้วย`)) return;
+  const r = await fetch(`/admin/students/${id}`, { method: 'DELETE', headers: { 'x-admin-key': ADMIN_KEY } });
+  if (r.ok) {
+    showToast(`🗑️ ลบ ${name} แล้ว`, '');
+    loadManageLists();
+    loadDashboard();
+  } else {
+    showToast('เกิดข้อผิดพลาด', 'error');
+  }
+}
+
+async function deleteTopic(id, title) {
+  if (!confirm(`ลบหัวข้อ "${title}" ออกจากระบบ?\n\nข้อมูลการชำระเงินในหัวข้อนี้จะถูกลบด้วย`)) return;
+  const r = await fetch(`/admin/topics/${id}`, { method: 'DELETE', headers: { 'x-admin-key': ADMIN_KEY } });
+  if (r.ok) {
+    showToast(`🗑️ ลบหัวข้อ "${title}" แล้ว`, '');
+    loadManageLists();
+    loadDashboard();
+    loadTopicFilter();
+  } else {
+    showToast('เกิดข้อผิดพลาด', 'error');
+  }
 }
 
 // ── Export CSV ──
@@ -841,4 +873,3 @@ document.getElementById('adminKey').addEventListener('keydown', e => {
 </script>
 </body>
 </html>
-
