@@ -1,0 +1,409 @@
+// ============================================
+// Flex Message Templates สำหรับ LINE Bot
+// ============================================
+
+/**
+ * เมนูหลัก
+ */
+function mainMenu() {
+  return {
+    type: 'flex',
+    altText: '📋 เมนูหลัก - ระบบจ่ายเงินสภานักเรียน',
+    contents: {
+      type: 'bubble',
+      size: 'mega',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          {
+            type: 'text',
+            text: '🏫 สภานักเรียน',
+            weight: 'bold',
+            size: 'xl',
+            color: '#FFFFFF'
+          },
+          {
+            type: 'text',
+            text: 'ระบบแจ้งชำระเงิน',
+            size: 'sm',
+            color: '#FFFFFF99'
+          }
+        ],
+        backgroundColor: '#2E7D32',
+        paddingAll: '20px'
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'md',
+        contents: [
+          {
+            type: 'text',
+            text: 'เลือกรายการที่ต้องการ',
+            size: 'md',
+            color: '#555555',
+            margin: 'md'
+          },
+          {
+            type: 'button',
+            style: 'primary',
+            color: '#2E7D32',
+            action: {
+              type: 'postback',
+              label: '💳 แจ้งชำระเงิน',
+              data: 'action=select_topic'
+            },
+            height: 'sm'
+          },
+          {
+            type: 'button',
+            style: 'secondary',
+            action: {
+              type: 'postback',
+              label: '📊 ดูสถานะการชำระของฉัน',
+              data: 'action=my_status'
+            },
+            height: 'sm'
+          }
+        ],
+        paddingAll: '20px'
+      }
+    }
+  };
+}
+
+/**
+ * เลือกหัวข้อการจ่ายเงิน
+ */
+function topicSelector(topics) {
+  if (topics.length === 0) {
+    return {
+      type: 'text',
+      text: '❌ ยังไม่มีหัวข้อการชำระเงินในขณะนี้\nกรุณาติดต่อแอดมิน'
+    };
+  }
+
+  const bubbles = topics.map(topic => ({
+    type: 'bubble',
+    size: 'kilo',
+    body: {
+      type: 'box',
+      layout: 'vertical',
+      spacing: 'sm',
+      contents: [
+        {
+          type: 'text',
+          text: topic.title,
+          weight: 'bold',
+          size: 'md',
+          wrap: true
+        },
+        topic.amount ? {
+          type: 'text',
+          text: `💰 ${Number(topic.amount).toLocaleString('th-TH')} บาท`,
+          size: 'sm',
+          color: '#2E7D32'
+        } : null,
+        topic.due_date ? {
+          type: 'text',
+          text: `📅 ครบกำหนด: ${new Date(topic.due_date).toLocaleDateString('th-TH')}`,
+          size: 'sm',
+          color: '#888888'
+        } : null,
+        topic.description ? {
+          type: 'text',
+          text: topic.description,
+          size: 'xs',
+          color: '#AAAAAA',
+          wrap: true
+        } : null
+      ].filter(Boolean)
+    },
+    footer: {
+      type: 'box',
+      layout: 'vertical',
+      contents: [
+        {
+          type: 'button',
+          style: 'primary',
+          color: '#2E7D32',
+          action: {
+            type: 'postback',
+            label: 'เลือกหัวข้อนี้',
+            data: `action=select_topic_id&topic_id=${topic.id}&topic_name=${encodeURIComponent(topic.title)}`
+          },
+          height: 'sm'
+        }
+      ]
+    }
+  }));
+
+  return {
+    type: 'flex',
+    altText: '📋 เลือกหัวข้อการชำระเงิน',
+    contents: {
+      type: 'carousel',
+      contents: bubbles
+    }
+  };
+}
+
+/**
+ * เลือกชื่อนักเรียน
+ */
+function studentSelector(students, topicId, topicName) {
+  if (students.length === 0) {
+    return {
+      type: 'text',
+      text: '❌ ไม่พบรายชื่อนักเรียน กรุณาติดต่อแอดมิน'
+    };
+  }
+
+  // แบ่งเป็นกลุ่มละ 10 ปุ่ม (Quick Reply)
+  const quickReplies = students.slice(0, 13).map(s => ({
+    type: 'action',
+    action: {
+      type: 'postback',
+      label: s.nickname ? `${s.nickname}` : s.name.substring(0, 20),
+      data: `action=select_student&student_id=${s.id}&student_name=${encodeURIComponent(s.name)}&topic_id=${topicId}`
+    }
+  }));
+
+  return {
+    type: 'text',
+    text: `📝 หัวข้อ: ${topicName}\n\nกรุณาเลือกชื่อของคุณ 👇`,
+    quickReply: {
+      items: quickReplies
+    }
+  };
+}
+
+/**
+ * ยืนยันข้อมูลก่อนส่งสลิป
+ */
+function confirmPayment(studentName, topicName, amount) {
+  return {
+    type: 'flex',
+    altText: '📸 กรุณาส่งสลิปการโอนเงิน',
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          {
+            type: 'text',
+            text: '✅ ยืนยันข้อมูล',
+            weight: 'bold',
+            color: '#FFFFFF',
+            size: 'lg'
+          }
+        ],
+        backgroundColor: '#1565C0',
+        paddingAll: '15px'
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'sm',
+        contents: [
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: '👤 ชื่อ', size: 'sm', color: '#888888', flex: 2 },
+              { type: 'text', text: studentName, size: 'sm', weight: 'bold', flex: 5, wrap: true }
+            ]
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: '📋 หัวข้อ', size: 'sm', color: '#888888', flex: 2 },
+              { type: 'text', text: topicName, size: 'sm', weight: 'bold', flex: 5, wrap: true }
+            ]
+          },
+          amount ? {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: '💰 จำนวน', size: 'sm', color: '#888888', flex: 2 },
+              { type: 'text', text: `${Number(amount).toLocaleString('th-TH')} บาท`, size: 'sm', weight: 'bold', color: '#2E7D32', flex: 5 }
+            ]
+          } : null,
+          {
+            type: 'separator',
+            margin: 'md'
+          },
+          {
+            type: 'text',
+            text: '📸 กรุณาส่งรูปสลิปการโอนเงิน',
+            size: 'md',
+            color: '#1565C0',
+            weight: 'bold',
+            wrap: true,
+            margin: 'md'
+          },
+          {
+            type: 'text',
+            text: 'ส่งรูปภาพในแชทนี้เลยได้เลย',
+            size: 'sm',
+            color: '#888888',
+            wrap: true
+          }
+        ].filter(Boolean),
+        paddingAll: '20px'
+      },
+      footer: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          {
+            type: 'button',
+            style: 'secondary',
+            action: {
+              type: 'postback',
+              label: '❌ ยกเลิก',
+              data: 'action=cancel'
+            },
+            height: 'sm'
+          }
+        ]
+      }
+    }
+  };
+}
+
+/**
+ * แจ้งผลการส่งสลิปสำเร็จ
+ */
+function successMessage(studentName, topicName) {
+  return {
+    type: 'flex',
+    altText: '✅ ส่งสลิปเรียบร้อยแล้ว',
+    contents: {
+      type: 'bubble',
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'md',
+        contents: [
+          {
+            type: 'text',
+            text: '✅',
+            size: '5xl',
+            align: 'center'
+          },
+          {
+            type: 'text',
+            text: 'ส่งสลิปเรียบร้อยแล้ว!',
+            weight: 'bold',
+            size: 'xl',
+            align: 'center',
+            color: '#2E7D32'
+          },
+          {
+            type: 'text',
+            text: `${studentName}\nหัวข้อ: ${topicName}`,
+            size: 'sm',
+            color: '#666666',
+            align: 'center',
+            wrap: true
+          },
+          {
+            type: 'text',
+            text: 'รอแอดมินตรวจสอบและอนุมัติ',
+            size: 'xs',
+            color: '#AAAAAA',
+            align: 'center',
+            wrap: true
+          }
+        ],
+        paddingAll: '30px'
+      }
+    }
+  };
+}
+
+/**
+ * สถานะการชำระเงินของนักเรียน
+ */
+function myStatusMessage(studentName, payments) {
+  if (payments.length === 0) {
+    return {
+      type: 'text',
+      text: `📊 สถานะของ ${studentName}\n\nยังไม่มีรายการชำระเงิน`
+    };
+  }
+
+  const statusEmoji = { pending: '⏳', approved: '✅', rejected: '❌', not_paid: '❌' };
+  const statusText = { pending: 'รอตรวจสอบ', approved: 'อนุมัติแล้ว', rejected: 'ถูกปฏิเสธ', not_paid: 'ยังไม่ได้จ่าย' };
+
+  const rows = payments.map(p => ({
+    type: 'box',
+    layout: 'horizontal',
+    contents: [
+      {
+        type: 'text',
+        text: `${statusEmoji[p.status]} ${p.topic_title}`,
+        size: 'sm',
+        flex: 4,
+        wrap: true
+      },
+      {
+        type: 'text',
+        text: statusText[p.status],
+        size: 'sm',
+        flex: 3,
+        align: 'end',
+        color: p.status === 'approved' ? '#2E7D32' : p.status === 'rejected' ? '#C62828' : '#F57F17'
+      }
+    ],
+    margin: 'sm'
+  }));
+
+  return {
+    type: 'flex',
+    altText: `📊 สถานะการชำระเงินของ ${studentName}`,
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        contents: [
+          {
+            type: 'text',
+            text: '📊 สถานะของฉัน',
+            weight: 'bold',
+            color: '#FFFFFF'
+          },
+          {
+            type: 'text',
+            text: studentName,
+            size: 'sm',
+            color: '#FFFFFF99'
+          }
+        ],
+        backgroundColor: '#1565C0',
+        paddingAll: '15px'
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        contents: rows,
+        paddingAll: '15px',
+        spacing: 'sm'
+      }
+    }
+  };
+}
+
+module.exports = {
+  mainMenu,
+  topicSelector,
+  studentSelector,
+  confirmPayment,
+  successMessage,
+  myStatusMessage
+};
