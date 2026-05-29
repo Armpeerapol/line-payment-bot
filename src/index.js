@@ -64,7 +64,23 @@ async function handleEvent(event) {
         });
       }
 
-      // ทุก text message → แสดงเมนูเสมอ
+      // ข้อความจาก Rich Menu
+      if (text === 'แจ้งชำระเงิน') {
+        // จำลอง postback select_topic
+        return await handlePostback(
+          { ...event, postback: { data: 'action=select_topic' } },
+          userId
+        );
+      }
+
+      if (text === 'สถานะ') {
+        return await handlePostback(
+          { ...event, postback: { data: 'action=my_status' } },
+          userId
+        );
+      }
+
+      // ทุก text message อื่น → แสดงเมนูเสมอ
       return client.replyMessage({
         replyToken: event.replyToken,
         messages: [msg.mainMenu()]
