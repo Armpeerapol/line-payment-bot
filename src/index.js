@@ -44,7 +44,7 @@ async function handleEvent(event) {
         messages: [
           {
             type: 'text',
-            text: '👋 ยินดีต้อนรับสู่ระบบแจ้งชำระเงินสภานักเรียน!\n\nกดปุ่มด้านล่างเพื่อเริ่มต้น 👇'
+            text: '👋 ยินดีต้อนรับสู่ระบบแจ้งชำระเงินสภานักเรียน!\n\nกดปุ่มด้านล่างเพื่อเริ่มต้นได้เลยค่ะ 👇'
           },
           msg.mainMenu()
         ]
@@ -55,13 +55,6 @@ async function handleEvent(event) {
     if (event.type === 'message' && event.message.type === 'text') {
       const text = event.message.text.trim();
 
-      if (text === 'เมนู' || text === 'menu' || text === 'หน้าหลัก') {
-        return client.replyMessage({
-          replyToken: event.replyToken,
-          messages: [msg.mainMenu()]
-        });
-      }
-
       // รอรับสลิป? (state = waiting_slip)
       const session = await getSession(userId);
       if (session?.state === 'waiting_slip') {
@@ -71,12 +64,10 @@ async function handleEvent(event) {
         });
       }
 
+      // ทุก text message → แสดงเมนูเสมอ
       return client.replyMessage({
         replyToken: event.replyToken,
-        messages: [
-          { type: 'text', text: 'พิมพ์ "เมนู" หรือกดปุ่มด้านล่างเพื่อใช้งาน 👇' },
-          msg.mainMenu()
-        ]
+        messages: [msg.mainMenu()]
       });
     }
 
@@ -529,10 +520,123 @@ app.post('/admin/remind/:topic_id', adminAuth, async (req, res) => {
 // Serve Dashboard
 app.use(express.static(path.join(__dirname, '../dashboard')));
 
+
+// ============================================
+// Rich Menu Setup (เมนูติดด้านล่างตลอด)
+// ============================================
+async function setupRichMenu() {
+  try {
+    // ลบ rich menu เก่าทั้งหมดก่อน
+    const { richmenus } = await client.getRichMenuList().catch(() => ({ richmenus: [] }));
+    for (const rm of (richmenus || [])) {
+      await client.deleteRichMenu(rm.richMenuId).catch(() => {});
+    }
+
+    // สร้าง rich menu ใหม่
+    const richMenuId = await client.createRichMenu({
+      size: { width: 2500, height: 843 },
+      selected: true,
+      name: 'Main Menu',
+      chatBarText: 'เมนู 📋',
+      areas: [
+        {
+          bounds: { x: 0, y: 0, width: 1250, height: 843 },
+          action: { type: 'postback', data: 'action=select_topic', label: 'แจ้งชำระเงิน' }
+        },
+        {
+          bounds: { x: 1250, y: 0, width: 1250, height: 843 },
+          action: { type: 'postback', data: 'action=my_status', label: 'ดูสถานะ' }
+        }
+      ]
+    });
+
+    // อัพโหลดรูป rich menu
+    const { createCanvas } = require('canvas');
+    const canvas = createCanvas(2500, 843);
+    const ctx = canvas.getContext('2d');
+
+    // พื้นหลัง
+    ctx.fillStyle = '#1B5E20';
+    ctx.fillRect(0, 0, 2500, 843);
+
+    // เส้นแบ่งกลาง
+    ctx.fillStyle = '#2E7D32';
+    ctx.fillRect(1245, 0, 10, 843);
+
+    // ปุ่มซ้าย — แจ้งชำระเงิน
+    ctx.fillStyle = '#2E7D32';
+    roundRect(ctx, 80, 120, 1090, 600, 40);
+    ctx.fill();
+
+    // ปุ่มขวา — ดูสถานะ
+    ctx.fillStyle = '#1565C0';
+    roundRect(ctx, 1330, 120, 1090, 600, 40);
+    ctx.fill();
+
+    // ข้อความ
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 120px sans-serif';
+    ctx.fillText('💳', 625, 380);
+    ctx.font = 'bold 80px sans-serif';
+    ctx.fillText('แจ้งชำระเงิน', 625, 580);
+
+    ctx.fillText('📊', 1875, 380);
+    ctx.fillText('ดูสถานะ', 1875, 580);
+
+    const imageBuffer = canvas.toBuffer('image/png');
+
+    await client.setRichMenuImage(richMenuId, imageBuffer, 'image/png');
+    await client.setDefaultRichMenu(richMenuId);
+
+    console.log('✅ Rich menu created:', richMenuId);
+  } catch (err) {
+    // canvas อาจไม่มี — ใช้แบบไม่มีรูปแทน (chatBarText ยังทำงานได้)
+    console.log('ℹ️ Rich menu image skipped (canvas not available), text-only mode');
+    try {
+      const richMenuId = await client.createRichMenu({
+        size: { width: 2500, height: 843 },
+        selected: true,
+        name: 'Main Menu',
+        chatBarText: '📋 แตะเพื่อเปิดเมนู',
+        areas: [
+          {
+            bounds: { x: 0, y: 0, width: 1250, height: 843 },
+            action: { type: 'postback', data: 'action=select_topic', label: 'แจ้งชำระเงิน' }
+          },
+          {
+            bounds: { x: 1250, y: 0, width: 1250, height: 843 },
+            action: { type: 'postback', data: 'action=my_status', label: 'ดูสถานะ' }
+          }
+        ]
+      });
+      await client.setDefaultRichMenu(richMenuId);
+      console.log('✅ Rich menu (text-only) created:', richMenuId);
+    } catch (e2) {
+      console.error('Rich menu failed:', e2.message);
+    }
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 LINE Bot server running on port ${PORT}`);
+  setupRichMenu();
 });
