@@ -55,18 +55,9 @@ async function handleEvent(event) {
     if (event.type === 'message' && event.message.type === 'text') {
       const text = event.message.text.trim();
 
-      // รอรับสลิป? (state = waiting_slip)
-      const session = await getSession(userId);
-      if (session?.state === 'waiting_slip') {
-        return client.replyMessage({
-          replyToken: event.replyToken,
-          messages: [{ type: 'text', text: '📸 กรุณาส่งรูปภาพสลิปการโอนเงินนะคะ' }]
-        });
-      }
-
-      // ข้อความจาก Rich Menu
+      // ข้อความจาก Rich Menu — เช็คก่อนเลย ไม่สนใจ session
       if (text === 'แจ้งชำระเงิน') {
-        // จำลอง postback select_topic
+        await updateSession(userId, { state: 'idle', selected_topic_id: null, student_id: null });
         return await handlePostback(
           { ...event, postback: { data: 'action=select_topic' } },
           userId
@@ -78,6 +69,15 @@ async function handleEvent(event) {
           { ...event, postback: { data: 'action=my_status' } },
           userId
         );
+      }
+
+      // รอรับสลิป? (state = waiting_slip)
+      const session = await getSession(userId);
+      if (session?.state === 'waiting_slip') {
+        return client.replyMessage({
+          replyToken: event.replyToken,
+          messages: [{ type: 'text', text: '📸 กรุณาส่งรูปภาพสลิปการโอนเงินนะคะ' }]
+        });
       }
 
       // ทุก text message อื่น → แสดงเมนูเสมอ
