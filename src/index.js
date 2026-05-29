@@ -64,7 +64,7 @@ async function handleEvent(event) {
         );
       }
 
-      if (text === 'สถานะ') {
+      if (text === 'สถานะ' || text === 'ตรวจสอบสถานะ' || text === 'เช็คสถานะ' || text === 'ดูสถานะ') {
         return await handlePostback(
           { ...event, postback: { data: 'action=my_status' } },
           userId
