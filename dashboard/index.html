@@ -781,7 +781,9 @@ async function addTopic() {
     body: JSON.stringify({ title, amount: amount || null, due_date, description })
   });
   if (r.ok) {
-    showToast('✅ เพิ่มหัวข้อแล้ว', 'success');
+    const result = await r.json();
+    const notified = result.notified || 0;
+    showToast(`✅ เพิ่มหัวข้อแล้ว${notified > 0 ? ` · แจ้งเตือน ${notified} คน 📢` : ''}`, 'success');
     ['newTopicTitle','newTopicAmount','newTopicDue','newTopicDesc'].forEach(id => document.getElementById(id).value = '');
     loadManageLists();
     loadTopicFilter();
