@@ -124,7 +124,7 @@ async function handlePostback(event, userId) {
     case 'select_topic_id': {
       const topicId = params.get('topic_id');
 
-      // ดึงข้อมูลหัวข้อจาก DB (แทนที่จะรับจาก postback เพื่อป้องกัน data เกิน 300 ตัว)
+      // ดึงข้อมูลหัวข้อจาก DB
       const { data: topic } = await supabase
         .from('payment_topics')
         .select('id, title')
@@ -133,12 +133,31 @@ async function handlePostback(event, userId) {
 
       const topicName = topic?.title || '';
 
-      // ดึงรายชื่อนักเรียน
-      const { data: students } = await supabase
+      // ดึงรายชื่อนักเรียนทั้งหมด
+      const { data: allStudents } = await supabase
         .from('students')
         .select('id, name, nickname')
         .eq('is_active', true)
         .order('name');
+
+      // ดึง payments ที่ pending หรือ approved แล้ว (ไม่ต้องแสดงในรายชื่อ)
+      const { data: paidPayments } = await supabase
+        .from('payments')
+        .select('student_id, status')
+        .eq('topic_id', topicId)
+        .in('status', ['pending', 'approved']);
+
+      const paidIds = new Set((paidPayments || []).map(p => p.student_id));
+
+      // แสดงเฉพาะคนที่ยังไม่จ่าย หรือถูกปฏิเสธ
+      const students = (allStudents || []).filter(s => !paidIds.has(s.id));
+
+      if (students.length === 0) {
+        return client.replyMessage({
+          replyToken: event.replyToken,
+          messages: [{ type: 'text', text: `✅ ทุกคนได้ชำระเงินหัวข้อ "${topicName}" ครบแล้ว!` }]
+        });
+      }
 
       await updateSession(userId, {
         state: 'selecting_student',
@@ -147,7 +166,7 @@ async function handlePostback(event, userId) {
 
       return client.replyMessage({
         replyToken: event.replyToken,
-        messages: [msg.studentSelector(students || [], topicId, topicName)]
+        messages: [msg.studentSelector(students, topicId, topicName)]
       });
     }
 
@@ -426,6 +445,57 @@ app.patch('/admin/payments/:id', adminAuth, async (req, res) => {
     .single();
   if (error) return res.status(400).json({ error });
   res.json(data);
+});
+
+// ทวงเงิน — ส่งข้อความหาคนที่ยังไม่จ่ายในหัวข้อนั้น
+app.post('/admin/remind/:topic_id', adminAuth, async (req, res) => {
+  const { topic_id } = req.params;
+  const { message } = req.body;
+
+  const { data: topic } = await supabase
+    .from('payment_topics')
+    .select('title, amount, due_date')
+    .eq('id', topic_id)
+    .single();
+
+  const { data: allStudents } = await supabase
+    .from('students')
+    .select('id, name, line_user_id')
+    .eq('is_active', true)
+    .not('line_user_id', 'is', null);
+
+  const { data: paidPayments } = await supabase
+    .from('payments')
+    .select('student_id, status')
+    .eq('topic_id', topic_id)
+    .in('status', ['pending', 'approved']);
+
+  const paidIds = new Set((paidPayments || []).map(p => p.student_id));
+  const unpaidStudents = (allStudents || []).filter(s => !paidIds.has(s.id));
+
+  if (unpaidStudents.length === 0) {
+    return res.json({ success: true, sent: 0, message: 'ทุกคนจ่ายแล้ว' });
+  }
+
+  const defaultMsg = message ||
+    `📢 แจ้งเตือนการชำระเงิน\n\nหัวข้อ: ${topic?.title || ''}\n${topic?.amount ? 'จำนวน: ' + Number(topic.amount).toLocaleString('th-TH') + ' บาท\n' : ''}${topic?.due_date ? 'ครบกำหนด: ' + new Date(topic.due_date).toLocaleDateString('th-TH') + '\n' : ''}\nกรุณาชำระเงินและส่งสลิปผ่านบอทนี้ด้วยนะคะ 🙏`;
+
+  let sent = 0, failed = 0;
+
+  for (const student of unpaidStudents) {
+    try {
+      await client.pushMessage({
+        to: student.line_user_id,
+        messages: [{ type: 'text', text: defaultMsg }]
+      });
+      sent++;
+    } catch (e) {
+      console.error('Push failed for ' + student.name + ':', e.message);
+      failed++;
+    }
+  }
+
+  res.json({ success: true, sent, failed, total: unpaidStudents.length });
 });
 
 // Serve Dashboard
