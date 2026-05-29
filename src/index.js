@@ -112,11 +112,39 @@ async function handlePostback(event, userId) {
         .eq('is_active', true)
         .order('created_at', { ascending: false });
 
+      // ดึง student_id ของ user นี้
+      const { data: myStudent } = await supabase
+        .from('students')
+        .select('id')
+        .eq('line_user_id', userId)
+        .maybeSingle();
+
+      let availableTopics = topics || [];
+
+      if (myStudent) {
+        // ดึงหัวข้อที่ user นี้จ่ายแล้ว (pending หรือ approved)
+        const { data: myPayments } = await supabase
+          .from('payments')
+          .select('topic_id, status')
+          .eq('student_id', myStudent.id)
+          .in('status', ['pending', 'approved']);
+
+        const paidTopicIds = new Set((myPayments || []).map(p => p.topic_id));
+        availableTopics = availableTopics.filter(t => !paidTopicIds.has(t.id));
+      }
+
+      if (availableTopics.length === 0) {
+        return client.replyMessage({
+          replyToken: event.replyToken,
+          messages: [{ type: 'text', text: '✅ คุณได้ชำระเงินทุกหัวข้อครบแล้ว!' }]
+        });
+      }
+
       return client.replyMessage({
         replyToken: event.replyToken,
         messages: [
           { type: 'text', text: '📋 เลือกหัวข้อการชำระเงิน' },
-          msg.topicSelector(topics || [])
+          msg.topicSelector(availableTopics)
         ]
       });
     }
