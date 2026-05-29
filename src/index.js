@@ -437,48 +437,237 @@ app.post('/admin/topics', adminAuth, async (req, res) => {
     .not('line_user_id', 'is', null);
 
   if (students && students.length > 0) {
+    const dueDateStr = due_date
+      ? new Date(due_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
+      : null;
+    const amountStr = amount ? Number(amount).toLocaleString('th-TH') : null;
+
     const notifyMsg = [
       {
         type: 'flex',
-        altText: `📢 มีหัวข้อการชำระเงินใหม่: ${title}`,
+        altText: `📢 แจ้งเตือน: ${title}${amountStr ? ' · ' + amountStr + ' บาท' : ''}`,
         contents: {
           type: 'bubble',
+          size: 'mega',
           header: {
             type: 'box',
             layout: 'vertical',
-            contents: [{
-              type: 'text',
-              text: '📢 แจ้งเตือนชำระเงิน',
-              weight: 'bold',
-              color: '#FFFFFF',
-              size: 'lg'
-            }],
-            backgroundColor: '#E65100',
-            paddingAll: '15px'
+            contents: [
+              {
+                type: 'box',
+                layout: 'horizontal',
+                contents: [
+                  {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                      {
+                        type: 'text',
+                        text: '📢 แจ้งเตือนใหม่',
+                        color: '#ffffff99',
+                        size: 'sm',
+                        weight: 'bold'
+                      },
+                      {
+                        type: 'text',
+                        text: 'การชำระเงิน',
+                        color: '#FFFFFF',
+                        size: 'xxl',
+                        weight: 'bold'
+                      }
+                    ],
+                    flex: 1
+                  },
+                  {
+                    type: 'text',
+                    text: '🏫',
+                    size: '3xl',
+                    align: 'end',
+                    gravity: 'center'
+                  }
+                ]
+              }
+            ],
+            paddingAll: '24px',
+            backgroundColor: '#1B5E20',
+            background: {
+              type: 'linearGradient',
+              angle: '135deg',
+              startColor: '#1B5E20',
+              endColor: '#2E7D32'
+            }
           },
           body: {
             type: 'box',
             layout: 'vertical',
-            spacing: 'sm',
+            spacing: 'none',
             contents: [
-              { type: 'text', text: title, weight: 'bold', size: 'xl', wrap: true },
-              amount ? { type: 'text', text: `💰 จำนวน: ${Number(amount).toLocaleString('th-TH')} บาท`, size: 'sm', color: '#2E7D32' } : null,
-              due_date ? { type: 'text', text: `📅 ครบกำหนด: ${new Date(due_date).toLocaleDateString('th-TH')}`, size: 'sm', color: '#C62828' } : null,
-              description ? { type: 'text', text: description, size: 'sm', color: '#888888', wrap: true } : null,
-              { type: 'separator', margin: 'md' },
-              { type: 'text', text: 'กดปุ่มด้านล่างเพื่อชำระเงินได้เลยค่ะ 👇', size: 'sm', color: '#555555', wrap: true, margin: 'md' }
-            ].filter(Boolean),
+              // ชื่อหัวข้อ
+              {
+                type: 'box',
+                layout: 'vertical',
+                contents: [
+                  {
+                    type: 'text',
+                    text: 'หัวข้อ',
+                    size: 'xs',
+                    color: '#888888',
+                    weight: 'bold',
+                    margin: 'none'
+                  },
+                  {
+                    type: 'text',
+                    text: title,
+                    size: 'xl',
+                    weight: 'bold',
+                    color: '#1B5E20',
+                    wrap: true,
+                    margin: 'sm'
+                  }
+                ],
+                backgroundColor: '#F1F8E9',
+                paddingAll: '18px',
+                cornerRadius: '12px',
+                margin: 'none'
+              },
+              // ข้อมูล
+              {
+                type: 'box',
+                layout: 'vertical',
+                spacing: 'sm',
+                margin: 'lg',
+                contents: [
+                  amountStr ? {
+                    type: 'box',
+                    layout: 'horizontal',
+                    contents: [
+                      {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [{ type: 'text', text: '💰', size: 'lg', align: 'center' }],
+                        backgroundColor: '#E8F5E9',
+                        width: '44px',
+                        height: '44px',
+                        cornerRadius: '22px',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                      },
+                      {
+                        type: 'box',
+                        layout: 'vertical',
+                        flex: 1,
+                        paddingStart: '12px',
+                        contents: [
+                          { type: 'text', text: 'จำนวนเงิน', size: 'xs', color: '#888888' },
+                          { type: 'text', text: `${amountStr} บาท`, size: 'lg', weight: 'bold', color: '#2E7D32' }
+                        ]
+                      }
+                    ],
+                    alignItems: 'center'
+                  } : null,
+                  dueDateStr ? {
+                    type: 'box',
+                    layout: 'horizontal',
+                    contents: [
+                      {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [{ type: 'text', text: '📅', size: 'lg', align: 'center' }],
+                        backgroundColor: '#FFF3E0',
+                        width: '44px',
+                        height: '44px',
+                        cornerRadius: '22px',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                      },
+                      {
+                        type: 'box',
+                        layout: 'vertical',
+                        flex: 1,
+                        paddingStart: '12px',
+                        contents: [
+                          { type: 'text', text: 'ครบกำหนด', size: 'xs', color: '#888888' },
+                          { type: 'text', text: dueDateStr, size: 'md', weight: 'bold', color: '#E65100' }
+                        ]
+                      }
+                    ],
+                    alignItems: 'center'
+                  } : null,
+                  description ? {
+                    type: 'box',
+                    layout: 'horizontal',
+                    contents: [
+                      {
+                        type: 'box',
+                        layout: 'vertical',
+                        contents: [{ type: 'text', text: '📝', size: 'lg', align: 'center' }],
+                        backgroundColor: '#E3F2FD',
+                        width: '44px',
+                        height: '44px',
+                        cornerRadius: '22px',
+                        justifyContent: 'center',
+                        alignItems: 'center'
+                      },
+                      {
+                        type: 'box',
+                        layout: 'vertical',
+                        flex: 1,
+                        paddingStart: '12px',
+                        contents: [
+                          { type: 'text', text: 'รายละเอียด', size: 'xs', color: '#888888' },
+                          { type: 'text', text: description, size: 'sm', color: '#555555', wrap: true }
+                        ]
+                      }
+                    ],
+                    alignItems: 'center'
+                  } : null
+                ].filter(Boolean)
+              },
+              // divider
+              { type: 'separator', margin: 'xl', color: '#EEEEEE' },
+              {
+                type: 'text',
+                text: 'กดปุ่มด้านล่างเพื่อชำระเงินได้เลยนะคะ 👇',
+                size: 'sm',
+                color: '#888888',
+                align: 'center',
+                wrap: true,
+                margin: 'lg'
+              }
+            ],
             paddingAll: '20px'
           },
           footer: {
             type: 'box',
             layout: 'vertical',
-            contents: [{
-              type: 'button',
-              style: 'primary',
-              color: '#2E7D32',
-              action: { type: 'message', label: '💳 แจ้งชำระเงินเลย', text: 'แจ้งชำระเงิน' }
-            }]
+            spacing: 'sm',
+            contents: [
+              {
+                type: 'button',
+                style: 'primary',
+                color: '#2E7D32',
+                height: 'sm',
+                action: {
+                  type: 'message',
+                  label: '💳 แจ้งชำระเงินเลย',
+                  text: 'แจ้งชำระเงิน'
+                }
+              },
+              {
+                type: 'button',
+                style: 'secondary',
+                height: 'sm',
+                action: {
+                  type: 'message',
+                  label: '📊 ดูสถานะการชำระ',
+                  text: 'ตรวจสอบสถานะ'
+                }
+              }
+            ],
+            paddingAll: '16px'
+          },
+          styles: {
+            footer: { separator: true }
           }
         }
       }
