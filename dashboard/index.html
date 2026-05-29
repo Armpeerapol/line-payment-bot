@@ -431,6 +431,7 @@
         </div>
         <input type="text" id="searchInput" placeholder="🔍 ค้นหาชื่อ..." oninput="renderTable()" />
         <button class="btn-action btn-outline" onclick="exportCSV()">📥 ดาวน์โหลด CSV</button>
+        <button class="btn-action" style="background:#E65100;color:white" onclick="openRemindModal()">📢 ทวงเงิน</button>
       </div>
 
       <!-- Table -->
@@ -523,6 +524,26 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- REMIND MODAL -->
+<div class="modal-overlay" id="remindModal">
+  <div class="modal">
+    <h2>📢 ทวงเงิน</h2>
+    <p style="font-size:14px;color:var(--gray-600);margin-bottom:16px">ระบบจะส่งข้อความหาเฉพาะคนที่<strong>ยังไม่จ่าย</strong>ในหัวข้อที่เลือกเท่านั้น</p>
+    <div class="form-group">
+      <label class="form-label">หัวข้อที่ต้องการทวง</label>
+      <select class="input-field" id="remindTopicSelect" style="margin-bottom:0"></select>
+    </div>
+    <div class="form-group" style="margin-top:12px">
+      <label class="form-label">ข้อความ (ไม่กรอก = ใช้ข้อความอัตโนมัติ)</label>
+      <textarea class="input-field" id="remindMessage" rows="4" placeholder="ปล่อยว่างเพื่อใช้ข้อความอัตโนมัติ..." style="resize:vertical;margin-bottom:0"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-action btn-green" style="flex:1;padding:10px" onclick="sendRemind()">📤 ส่งข้อความทวง</button>
+      <button class="btn-action btn-outline" style="flex:0.6;padding:10px" onclick="closeRemindModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ── State ──
@@ -861,9 +882,49 @@ window.onload = () => {
   }
 };
 
+// ── Remind ──
+async function openRemindModal() {
+  const r = await fetch('/admin/topics', { headers: { 'x-admin-key': ADMIN_KEY } });
+  const topics = await r.json();
+  const sel = document.getElementById('remindTopicSelect');
+  sel.innerHTML = topics.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+  document.getElementById('remindModal').classList.add('show');
+}
+
+function closeRemindModal() {
+  document.getElementById('remindModal').classList.remove('show');
+}
+
+async function sendRemind() {
+  const topicId = document.getElementById('remindTopicSelect').value;
+  const message = document.getElementById('remindMessage').value.trim();
+  if (!topicId) { showToast('กรุณาเลือกหัวข้อ', 'error'); return; }
+
+  const r = await fetch(`/admin/remind/${topicId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
+    body: JSON.stringify({ message: message || null })
+  });
+  const result = await r.json();
+
+  if (r.ok) {
+    closeRemindModal();
+    if (result.sent === 0) {
+      showToast('✅ ทุกคนจ่ายแล้ว ไม่มีใครต้องทวง', 'success');
+    } else {
+      showToast(`📤 ส่งทวงเงินแล้ว ${result.sent} คน${result.failed > 0 ? ` (ส่งไม่ได้ ${result.failed} คน)` : ''}`, 'success');
+    }
+  } else {
+    showToast('เกิดข้อผิดพลาด', 'error');
+  }
+}
+
 // Close modal on overlay click
 document.getElementById('slipModal').addEventListener('click', e => {
   if (e.target === document.getElementById('slipModal')) closeModal();
+});
+document.getElementById('remindModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('remindModal')) closeRemindModal();
 });
 
 // Enter to login
