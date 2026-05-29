@@ -423,12 +423,80 @@ app.post('/admin/students', adminAuth, async (req, res) => {
   res.json(data);
 });
 
-// เพิ่มหัวข้อ
+// เพิ่มหัวข้อ + แจ้งเตือนนักเรียนทันที
 app.post('/admin/topics', adminAuth, async (req, res) => {
   const { title, amount, due_date, description } = req.body;
   const { data, error } = await supabase.from('payment_topics').insert({ title, amount, due_date, description }).select().single();
   if (error) return res.status(400).json({ error });
-  res.json(data);
+
+  // ดึงนักเรียนทุกคนที่มี LINE
+  const { data: students } = await supabase
+    .from('students')
+    .select('line_user_id, name')
+    .eq('is_active', true)
+    .not('line_user_id', 'is', null);
+
+  if (students && students.length > 0) {
+    const notifyMsg = [
+      {
+        type: 'flex',
+        altText: `📢 มีหัวข้อการชำระเงินใหม่: ${title}`,
+        contents: {
+          type: 'bubble',
+          header: {
+            type: 'box',
+            layout: 'vertical',
+            contents: [{
+              type: 'text',
+              text: '📢 แจ้งเตือนชำระเงิน',
+              weight: 'bold',
+              color: '#FFFFFF',
+              size: 'lg'
+            }],
+            backgroundColor: '#E65100',
+            paddingAll: '15px'
+          },
+          body: {
+            type: 'box',
+            layout: 'vertical',
+            spacing: 'sm',
+            contents: [
+              { type: 'text', text: title, weight: 'bold', size: 'xl', wrap: true },
+              amount ? { type: 'text', text: `💰 จำนวน: ${Number(amount).toLocaleString('th-TH')} บาท`, size: 'sm', color: '#2E7D32' } : null,
+              due_date ? { type: 'text', text: `📅 ครบกำหนด: ${new Date(due_date).toLocaleDateString('th-TH')}`, size: 'sm', color: '#C62828' } : null,
+              description ? { type: 'text', text: description, size: 'sm', color: '#888888', wrap: true } : null,
+              { type: 'separator', margin: 'md' },
+              { type: 'text', text: 'กดปุ่มด้านล่างเพื่อชำระเงินได้เลยค่ะ 👇', size: 'sm', color: '#555555', wrap: true, margin: 'md' }
+            ].filter(Boolean),
+            paddingAll: '20px'
+          },
+          footer: {
+            type: 'box',
+            layout: 'vertical',
+            contents: [{
+              type: 'button',
+              style: 'primary',
+              color: '#2E7D32',
+              action: { type: 'message', label: '💳 แจ้งชำระเงินเลย', text: 'แจ้งชำระเงิน' }
+            }]
+          }
+        }
+      }
+    ];
+
+    let sent = 0;
+    for (const s of students) {
+      try {
+        await client.pushMessage({ to: s.line_user_id, messages: notifyMsg });
+        sent++;
+      } catch (e) {
+        console.error('Notify failed for', s.name, e.message);
+      }
+    }
+    console.log(`Notified ${sent}/${students.length} students about new topic: ${title}`);
+  }
+
+  res.json({ ...data, notified: students?.length || 0 });
 });
 
 // Dashboard data
