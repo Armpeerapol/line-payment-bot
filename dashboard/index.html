@@ -494,7 +494,10 @@
           </div>
           <div class="form-group">
             <label class="form-label">วันครบกำหนด</label>
-            <input type="date" class="input-field" id="newTopicDue" />
+            <div style="display:flex;gap:8px">
+              <input type="date" class="input-field" id="newTopicDue" style="flex:2;margin-bottom:0" />
+              <input type="time" class="input-field" id="newTopicDueTime" style="flex:1;margin-bottom:0" value="23:59" />
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">รายละเอียด</label>
@@ -691,6 +694,7 @@ function renderTable() {
       </td>
       <td style="font-size:12px;color:var(--gray-600)">
         ${d.submitted_at ? new Date(d.submitted_at).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}) : '—'}
+        ${d.note && d.note.includes('ล่าช้า') ? '<br><span style="font-size:11px;color:var(--red);font-weight:600">⚠️ ล่าช้า</span>' : ''}
       </td>
       <td>
         ${d.status === 'pending' ? `
@@ -772,7 +776,9 @@ async function addStudent() {
 async function addTopic() {
   const title = document.getElementById('newTopicTitle').value.trim();
   const amount = document.getElementById('newTopicAmount').value;
-  const due_date = document.getElementById('newTopicDue').value || null;
+  const dueDate = document.getElementById('newTopicDue').value;
+  const dueTime = document.getElementById('newTopicDueTime').value || '23:59';
+  const due_date = dueDate ? `${dueDate}T${dueTime}:00` : null;
   const description = document.getElementById('newTopicDesc').value.trim();
   if (!title) { showToast('กรุณากรอกหัวข้อ', 'error'); return; }
   const r = await fetch('/admin/topics', {
@@ -785,6 +791,7 @@ async function addTopic() {
     const notified = result.notified || 0;
     showToast(`✅ เพิ่มหัวข้อแล้ว${notified > 0 ? ` · แจ้งเตือน ${notified} คน 📢` : ''}`, 'success');
     ['newTopicTitle','newTopicAmount','newTopicDue','newTopicDesc'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('newTopicDueTime').value = '23:59';
     loadManageLists();
     loadTopicFilter();
   } else {
