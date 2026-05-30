@@ -406,6 +406,7 @@
     <div class="header-title">🏫 สภานักเรียน · แดชบอร์ด</div>
     <div class="header-actions">
       <button class="btn-header" onclick="showTab('dashboard')">📊 แดชบอร์ด</button>
+      <button class="btn-header" onclick="showTab('register')">👥 ลงทะเบียน</button>
       <button class="btn-header" onclick="showTab('manage')">⚙️ จัดการ</button>
       <button class="btn-header" onclick="logout()">ออกจากระบบ</button>
     </div>
@@ -459,6 +460,41 @@
         <div id="emptyState" class="empty" style="display:none">
           <div class="empty-icon">📭</div>
           <div>ไม่พบข้อมูล</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REGISTER TAB ── -->
+    <div id="tab-register" style="display:none">
+      <div class="stats-grid" id="regStats"></div>
+      <div class="controls" style="margin-bottom:20px">
+        <input type="text" id="regSearch" placeholder="🔍 ค้นหาชื่อ..." oninput="renderRegTable()" />
+        <div class="tabs">
+          <button class="tab active" onclick="filterReg('all',this)">ทั้งหมด</button>
+          <button class="tab" onclick="filterReg('registered',this)">✅ ลงแล้ว</button>
+          <button class="tab" onclick="filterReg('not_registered',this)">❌ ยังไม่ลง</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <div class="table-title">สถานะการลงทะเบียน LINE</div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>ชื่อ-นามสกุล</th>
+                <th>ชื่อเล่น</th>
+                <th>สถานะ</th>
+                <th>LINE User ID</th>
+              </tr>
+            </thead>
+            <tbody id="regTableBody"></tbody>
+          </table>
+        </div>
+        <div id="regEmpty" class="empty" style="display:none">
+          <div class="empty-icon">📭</div><div>ไม่พบข้อมูล</div>
         </div>
       </div>
     </div>
@@ -602,8 +638,10 @@ async function init() {
 // ── Tabs ──
 function showTab(tab) {
   document.getElementById('tab-dashboard').style.display = tab === 'dashboard' ? 'block' : 'none';
+  document.getElementById('tab-register').style.display = tab === 'register' ? 'block' : 'none';
   document.getElementById('tab-manage').style.display = tab === 'manage' ? 'block' : 'none';
   if (tab === 'manage') loadManageLists();
+  if (tab === 'register') loadRegister();
 }
 
 // ── Dashboard ──
@@ -898,6 +936,65 @@ window.onload = () => {
     });
   }
 };
+
+// ── Register ──
+let allStudentsReg = [];
+let regFilter = 'all';
+
+async function loadRegister() {
+  const r = await fetch('/admin/students', { headers: { 'x-admin-key': ADMIN_KEY } });
+  allStudentsReg = await r.json();
+  renderRegStats();
+  renderRegTable();
+}
+
+function renderRegStats() {
+  const total = allStudentsReg.length;
+  const registered = allStudentsReg.filter(s => s.line_user_id).length;
+  const notReg = total - registered;
+  document.getElementById('regStats').innerHTML = `
+    <div class="stat-card stat-total"><div class="stat-num">${total}</div><div class="stat-label">นักเรียนทั้งหมด</div></div>
+    <div class="stat-card stat-paid"><div class="stat-num">${registered}</div><div class="stat-label">✅ ลงทะเบียนแล้ว</div>
+      <div class="progress-wrap" style="margin-top:8px">
+        <div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${total ? (registered/total*100).toFixed(0) : 0}%"></div></div>
+      </div>
+    </div>
+    <div class="stat-card stat-unpaid"><div class="stat-num">${notReg}</div><div class="stat-label">❌ ยังไม่ลงทะเบียน</div></div>
+  `;
+}
+
+function filterReg(status, btn) {
+  regFilter = status;
+  document.querySelectorAll('#tab-register .tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  renderRegTable();
+}
+
+function renderRegTable() {
+  const search = document.getElementById('regSearch').value.toLowerCase();
+  let data = allStudentsReg;
+  if (regFilter === 'registered') data = data.filter(s => s.line_user_id);
+  if (regFilter === 'not_registered') data = data.filter(s => !s.line_user_id);
+  if (search) data = data.filter(s => s.name.toLowerCase().includes(search) || (s.nickname||'').toLowerCase().includes(search));
+
+  const tbody = document.getElementById('regTableBody');
+  const empty = document.getElementById('regEmpty');
+
+  if (data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = data.map((s, i) => `
+    <tr>
+      <td style="color:var(--gray-400);font-family:'IBM Plex Mono',monospace;font-size:12px">${i+1}</td>
+      <td><strong>${s.name}</strong></td>
+      <td style="color:var(--gray-600)">${s.nickname || '—'}</td>
+      <td>${s.line_user_id
+        ? '<span class="badge badge-approved">✅ ลงทะเบียนแล้ว</span>'
+        : '<span class="badge badge-not_paid">❌ ยังไม่ลง</span>'}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--gray-400)">${s.line_user_id ? s.line_user_id.substring(0,20)+'...' : '—'}</td>
+    </tr>
+  `).join('');
+}
 
 // ── Remind ──
 async function openRemindModal() {
