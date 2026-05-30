@@ -162,20 +162,79 @@ async function handlePostback(event, userId) {
       // ดึงข้อมูลหัวข้อจาก DB
       const { data: topic } = await supabase
         .from('payment_topics')
-        .select('id, title')
+        .select('id, title, amount')
         .eq('id', topicId)
         .single();
 
       const topicName = topic?.title || '';
 
-      // ดึงรายชื่อนักเรียนทั้งหมด
+      // ตรวจว่า user นี้มีชื่อในระบบแล้วหรือยัง
+      const { data: myStudent } = await supabase
+        .from('students')
+        .select('id, name, nickname')
+        .eq('line_user_id', userId)
+        .maybeSingle();
+
+      if (myStudent) {
+        // มีชื่อแล้ว — ตรวจว่าจ่ายหัวข้อนี้แล้วหรือยัง
+        const { data: existing } = await supabase
+          .from('payments')
+          .select('id, status')
+          .eq('student_id', myStudent.id)
+          .eq('topic_id', topicId)
+          .maybeSingle();
+
+        if (existing && existing.status !== 'rejected') {
+          const statusMsg = {
+            pending: '⏳ คุณได้ส่งสลิปไว้แล้ว รอการตรวจสอบจากแอดมินค่ะ',
+            approved: '✅ ชำระเงินสำเร็จแล้วค่ะ'
+          };
+          return client.replyMessage({
+            replyToken: event.replyToken,
+            messages: [{ type: 'text', text: statusMsg[existing.status] }]
+          });
+        }
+
+        // ยังไม่ได้จ่าย → ข้ามหน้าเลือกชื่อ ไปหน้ายืนยันเลย
+        await updateSession(userId, {
+          state: 'waiting_slip',
+          selected_topic_id: topicId,
+          student_id: myStudent.id
+        });
+
+        return client.replyMessage({
+          replyToken: event.replyToken,
+          messages: [
+            { type: 'text', text: `👋 สวัสดีค่ะ ${myStudent.nickname || myStudent.name}` },
+            msg.confirmPayment(myStudent.name, topicName, topic?.amount),
+            {
+              type: 'flex',
+              altText: 'แก้ไขชื่อ',
+              contents: {
+                type: 'bubble', size: 'nano',
+                body: {
+                  type: 'box', layout: 'vertical', paddingAll: '12px',
+                  contents: [
+                    { type: 'text', text: 'ไม่ใช่คุณ?', size: 'xs', color: '#888888', align: 'center' },
+                    {
+                      type: 'button', style: 'secondary', height: 'sm', margin: 'sm',
+                      action: { type: 'postback', label: '✏️ เปลี่ยนชื่อของฉัน', data: `action=change_name&topic_id=${topicId}` }
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        });
+      }
+
+      // ยังไม่มีชื่อ → แสดงหน้าเลือกชื่อ
       const { data: allStudents } = await supabase
         .from('students')
         .select('id, name, nickname')
         .eq('is_active', true)
         .order('name');
 
-      // ดึง payments ที่ pending หรือ approved แล้ว (ไม่ต้องแสดงในรายชื่อ)
       const { data: paidPayments } = await supabase
         .from('payments')
         .select('student_id, status')
@@ -183,8 +242,6 @@ async function handlePostback(event, userId) {
         .in('status', ['pending', 'approved']);
 
       const paidIds = new Set((paidPayments || []).map(p => p.student_id));
-
-      // แสดงเฉพาะคนที่ยังไม่จ่าย หรือถูกปฏิเสธ
       const students = (allStudents || []).filter(s => !paidIds.has(s.id));
 
       if (students.length === 0) {
@@ -194,14 +251,54 @@ async function handlePostback(event, userId) {
         });
       }
 
-      await updateSession(userId, {
-        state: 'selecting_student',
-        selected_topic_id: topicId
-      });
+      await updateSession(userId, { state: 'selecting_student', selected_topic_id: topicId });
 
       return client.replyMessage({
         replyToken: event.replyToken,
-        messages: [msg.studentSelector(students, topicId, topicName)]
+        messages: [
+          { type: 'text', text: `📝 หัวข้อ: ${topicName}
+
+กรุณาเลือกชื่อของคุณ 👇
+(ครั้งต่อไปจะจำชื่อให้อัตโนมัติค่ะ)` },
+          msg.studentSelector(students, topicId, topicName)
+        ]
+      });
+    }
+
+    case 'change_name': {
+      const topicId = params.get('topic_id');
+
+      // ล้าง line_user_id ออกจาก student เดิม
+      const { data: myStudent } = await supabase
+        .from('students')
+        .select('id')
+        .eq('line_user_id', userId)
+        .maybeSingle();
+
+      if (myStudent) {
+        await supabase.from('students').update({ line_user_id: null }).eq('id', myStudent.id);
+      }
+
+      const { data: topic } = await supabase
+        .from('payment_topics')
+        .select('id, title')
+        .eq('id', topicId)
+        .single();
+
+      const { data: allStudents } = await supabase
+        .from('students')
+        .select('id, name, nickname')
+        .eq('is_active', true)
+        .order('name');
+
+      await updateSession(userId, { state: 'selecting_student', selected_topic_id: topicId, student_id: null });
+
+      return client.replyMessage({
+        replyToken: event.replyToken,
+        messages: [
+          { type: 'text', text: '✏️ เลือกชื่อของคุณใหม่ได้เลยค่ะ 👇' },
+          msg.studentSelector(allStudents || [], topicId, topic?.title || '')
+        ]
       });
     }
 

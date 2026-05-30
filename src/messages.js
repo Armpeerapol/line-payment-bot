@@ -150,7 +150,7 @@ function topicSelector(topics) {
 }
 
 /**
- * เลือกชื่อนักเรียน
+ * เลือกชื่อนักเรียน — ใช้ Carousel รองรับได้ไม่จำกัด (max 10 bubble ต่อ carousel)
  */
 function studentSelector(students, topicId, topicName) {
   if (students.length === 0) {
@@ -160,27 +160,59 @@ function studentSelector(students, topicId, topicName) {
     };
   }
 
-  // แบ่งเป็นกลุ่มละ 10 ปุ่ม (Quick Reply)
-  const quickReplies = students.slice(0, 13).map(s => ({
-    type: 'action',
-    action: {
-      type: 'postback',
-      label: s.nickname ? s.nickname.substring(0, 20) : s.name.substring(0, 20),
-      data: `action=select_student&student_id=${s.id}&topic_id=${topicId}`
+  // แบ่งนักเรียนเป็นกลุ่มๆ ละ 5 คนต่อ bubble (max 12 bubble = 60 คน)
+  const chunkSize = 5;
+  const chunks = [];
+  for (let i = 0; i < students.length; i += chunkSize) {
+    chunks.push(students.slice(i, i + chunkSize));
+  }
+
+  const bubbles = chunks.slice(0, 12).map((group, idx) => ({
+    type: 'bubble',
+    size: 'kilo',
+    header: {
+      type: 'box',
+      layout: 'vertical',
+      contents: [{
+        type: 'text',
+        text: chunks.length > 1 ? `👥 รายชื่อ (${idx * chunkSize + 1}–${Math.min((idx + 1) * chunkSize, students.length)})` : '👥 เลือกชื่อของคุณ',
+        size: 'xs',
+        color: '#FFFFFF',
+        weight: 'bold'
+      }],
+      backgroundColor: '#2E7D32',
+      paddingAll: '10px'
+    },
+    body: {
+      type: 'box',
+      layout: 'vertical',
+      spacing: 'sm',
+      contents: group.map(s => ({
+        type: 'button',
+        style: 'secondary',
+        height: 'sm',
+        action: {
+          type: 'postback',
+          label: s.nickname ? `${s.nickname} (${s.name.split(' ')[0]})`.substring(0, 40) : s.name.substring(0, 40),
+          data: `action=select_student&student_id=${s.id}&topic_id=${topicId}`
+        }
+      })),
+      paddingAll: '12px'
     }
   }));
 
   return {
-    type: 'text',
-    text: `📝 หัวข้อ: ${topicName}\n\nกรุณาเลือกชื่อของคุณ 👇`,
-    quickReply: {
-      items: quickReplies
+    type: 'flex',
+    altText: `📝 เลือกชื่อของคุณ — หัวข้อ: ${topicName}`,
+    contents: {
+      type: 'carousel',
+      contents: bubbles
     }
   };
 }
 
 /**
- * ยืนยันข้อมูลก่อนส่งสลิป
+ * ยืนยันข้อมูลก่อนส่งสลิป + แสดงเลขบัญชี
  */
 function confirmPayment(studentName, topicName, amount) {
   return {
@@ -192,13 +224,7 @@ function confirmPayment(studentName, topicName, amount) {
         type: 'box',
         layout: 'vertical',
         contents: [
-          {
-            type: 'text',
-            text: '✅ ยืนยันข้อมูล',
-            weight: 'bold',
-            color: '#FFFFFF',
-            size: 'lg'
-          }
+          { type: 'text', text: '✅ ยืนยันข้อมูลการชำระเงิน', weight: 'bold', color: '#FFFFFF', size: 'md' }
         ],
         backgroundColor: '#1565C0',
         paddingAll: '15px'
@@ -208,66 +234,66 @@ function confirmPayment(studentName, topicName, amount) {
         layout: 'vertical',
         spacing: 'sm',
         contents: [
+          // ข้อมูลผู้จ่าย
           {
-            type: 'box',
-            layout: 'horizontal',
+            type: 'box', layout: 'horizontal',
             contents: [
               { type: 'text', text: '👤 ชื่อ', size: 'sm', color: '#888888', flex: 2 },
               { type: 'text', text: studentName, size: 'sm', weight: 'bold', flex: 5, wrap: true }
             ]
           },
           {
-            type: 'box',
-            layout: 'horizontal',
+            type: 'box', layout: 'horizontal',
             contents: [
               { type: 'text', text: '📋 หัวข้อ', size: 'sm', color: '#888888', flex: 2 },
               { type: 'text', text: topicName, size: 'sm', weight: 'bold', flex: 5, wrap: true }
             ]
           },
           amount ? {
-            type: 'box',
-            layout: 'horizontal',
+            type: 'box', layout: 'horizontal',
             contents: [
               { type: 'text', text: '💰 จำนวน', size: 'sm', color: '#888888', flex: 2 },
               { type: 'text', text: `${Number(amount).toLocaleString('th-TH')} บาท`, size: 'sm', weight: 'bold', color: '#2E7D32', flex: 5 }
             ]
           } : null,
+          { type: 'separator', margin: 'md' },
+          // บัญชีที่ต้องโอน
           {
-            type: 'separator',
-            margin: 'md'
+            type: 'box', layout: 'vertical',
+            backgroundColor: '#E8F5E9',
+            cornerRadius: '10px',
+            paddingAll: '14px',
+            margin: 'md',
+            contents: [
+              { type: 'text', text: '🏦 บัญชีที่ต้องโอน', size: 'sm', weight: 'bold', color: '#1B5E20' },
+              { type: 'separator', margin: 'sm', color: '#A5D6A7' },
+              {
+                type: 'box', layout: 'horizontal', margin: 'sm',
+                contents: [
+                  { type: 'text', text: 'ธนาคาร', size: 'xs', color: '#666666', flex: 3 },
+                  { type: 'text', text: 'ออมสิน', size: 'sm', weight: 'bold', color: '#1B5E20', flex: 5 }
+                ]
+              },
+              {
+                type: 'box', layout: 'horizontal', margin: 'xs',
+                contents: [
+                  { type: 'text', text: 'เลขบัญชี', size: 'xs', color: '#666666', flex: 3 },
+                  { type: 'text', text: '020-478218-462', size: 'sm', weight: 'bold', color: '#1B5E20', flex: 5 }
+                ]
+              }
+            ]
           },
-          {
-            type: 'text',
-            text: '📸 กรุณาส่งรูปสลิปการโอนเงิน',
-            size: 'md',
-            color: '#1565C0',
-            weight: 'bold',
-            wrap: true,
-            margin: 'md'
-          },
-          {
-            type: 'text',
-            text: 'ส่งรูปภาพในแชทนี้เลยได้เลย',
-            size: 'sm',
-            color: '#888888',
-            wrap: true
-          }
+          { type: 'separator', margin: 'md' },
+          { type: 'text', text: '📸 โอนแล้วส่งรูปสลิปมาในแชทนี้เลยนะคะ', size: 'sm', color: '#1565C0', weight: 'bold', wrap: true, margin: 'md' }
         ].filter(Boolean),
         paddingAll: '20px'
       },
       footer: {
-        type: 'box',
-        layout: 'vertical',
+        type: 'box', layout: 'vertical',
         contents: [
           {
-            type: 'button',
-            style: 'secondary',
-            action: {
-              type: 'postback',
-              label: '❌ ยกเลิก',
-              data: 'action=cancel'
-            },
-            height: 'sm'
+            type: 'button', style: 'secondary', height: 'sm',
+            action: { type: 'postback', label: '❌ ยกเลิก', data: 'action=cancel' }
           }
         ]
       }
