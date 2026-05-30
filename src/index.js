@@ -444,6 +444,17 @@ async function handleSlipUpload(event, userId) {
     const { data: student } = await supabase.from('students').select('name').eq('id', session.student_id).single();
     const { data: topic } = await supabase.from('payment_topics').select('title').eq('id', session.selected_topic_id).single();
 
+    // ตรวจว่าจ่ายล่าช้าหรือไม่
+    const { data: topicInfo } = await supabase
+      .from('payment_topics')
+      .select('due_date, title')
+      .eq('id', session.selected_topic_id)
+      .single();
+
+    const now = new Date();
+    const isLate = topicInfo?.due_date && new Date(topicInfo.due_date) < now;
+    const lateNote = isLate ? `⚠️ จ่ายล่าช้า (ครบกำหนด ${new Date(topicInfo.due_date).toLocaleDateString('th-TH')})` : null;
+
     // บันทึก/อัพเดต payment
     const { error: paymentError } = await supabase
       .from('payments')
@@ -453,7 +464,8 @@ async function handleSlipUpload(event, userId) {
         slip_url: slipUrl,
         slip_message_id: event.message.id,
         status: 'pending',
-        submitted_at: new Date().toISOString()
+        submitted_at: new Date().toISOString(),
+        note: lateNote
       }, { onConflict: 'student_id,topic_id' });
 
     if (paymentError) throw paymentError;
@@ -804,6 +816,9 @@ app.delete('/admin/students/:id', adminAuth, async (req, res) => {
 
 // ลบหัวข้อ
 app.delete('/admin/topics/:id', adminAuth, async (req, res) => {
+  // ลบ sessions และ payments ที่เกี่ยวข้องก่อน แล้วค่อยลบ topic
+  await supabase.from('line_sessions').update({ selected_topic_id: null }).eq('selected_topic_id', req.params.id);
+  await supabase.from('payments').delete().eq('topic_id', req.params.id);
   const { error } = await supabase.from('payment_topics').delete().eq('id', req.params.id);
   if (error) return res.status(400).json({ error });
   res.json({ success: true });
@@ -866,17 +881,84 @@ app.post('/admin/remind/:topic_id', adminAuth, async (req, res) => {
     return res.json({ success: true, sent: 0, message: 'ทุกคนจ่ายแล้ว' });
   }
 
-  const defaultMsg = message ||
-    `📢 แจ้งเตือนการชำระเงิน\n\nหัวข้อ: ${topic?.title || ''}\n${topic?.amount ? 'จำนวน: ' + Number(topic.amount).toLocaleString('th-TH') + ' บาท\n' : ''}${topic?.due_date ? 'ครบกำหนด: ' + new Date(topic.due_date).toLocaleDateString('th-TH') + '\n' : ''}\nกรุณาชำระเงินและส่งสลิปผ่านบอทนี้ด้วยนะคะ 🙏`;
+  const dueDateStr = topic?.due_date
+    ? new Date(topic.due_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
+    : null;
+  const amountStr = topic?.amount ? Number(topic.amount).toLocaleString('th-TH') : null;
+
+  const remindFlex = {
+    type: 'flex',
+    altText: `📢 แจ้งเตือน: ${topic?.title || 'ชำระเงิน'}${amountStr ? ' · ' + amountStr + ' บาท' : ''}`,
+    contents: {
+      type: 'bubble',
+      size: 'mega',
+      header: {
+        type: 'box', layout: 'vertical',
+        contents: [
+          { type: 'text', text: '📢 แจ้งเตือนการชำระเงิน', weight: 'bold', color: '#FFFFFF', size: 'md' },
+          { type: 'text', text: 'กรุณาชำระเงินด้วยนะคะ 🙏', color: '#FFFFFF99', size: 'xs' }
+        ],
+        backgroundColor: '#E65100', paddingAll: '16px'
+      },
+      body: {
+        type: 'box', layout: 'vertical', spacing: 'sm', paddingAll: '20px',
+        contents: [
+          {
+            type: 'box', layout: 'vertical', backgroundColor: '#FFF3E0',
+            cornerRadius: '10px', paddingAll: '14px',
+            contents: [
+              { type: 'text', text: topic?.title || '', weight: 'bold', size: 'lg', wrap: true, color: '#BF360C' }
+            ]
+          },
+          amountStr ? {
+            type: 'box', layout: 'horizontal', margin: 'md', alignItems: 'center',
+            contents: [
+              { type: 'box', layout: 'vertical', width: '40px', height: '40px', cornerRadius: '20px', backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center', contents: [{ type: 'text', text: '💰', size: 'sm', align: 'center' }] },
+              { type: 'box', layout: 'vertical', flex: 1, paddingStart: '12px', contents: [
+                { type: 'text', text: 'จำนวนเงิน', size: 'xs', color: '#888888' },
+                { type: 'text', text: `${amountStr} บาท`, size: 'md', weight: 'bold', color: '#2E7D32' }
+              ]}
+            ]
+          } : null,
+          dueDateStr ? {
+            type: 'box', layout: 'horizontal', margin: 'sm', alignItems: 'center',
+            contents: [
+              { type: 'box', layout: 'vertical', width: '40px', height: '40px', cornerRadius: '20px', backgroundColor: '#FCE4EC', justifyContent: 'center', alignItems: 'center', contents: [{ type: 'text', text: '📅', size: 'sm', align: 'center' }] },
+              { type: 'box', layout: 'vertical', flex: 1, paddingStart: '12px', contents: [
+                { type: 'text', text: 'ครบกำหนด', size: 'xs', color: '#888888' },
+                { type: 'text', text: dueDateStr, size: 'md', weight: 'bold', color: '#C62828' }
+              ]}
+            ]
+          } : null,
+          message ? {
+            type: 'box', layout: 'horizontal', margin: 'sm', alignItems: 'flex-start',
+            contents: [
+              { type: 'box', layout: 'vertical', width: '40px', height: '40px', cornerRadius: '20px', backgroundColor: '#E3F2FD', justifyContent: 'center', alignItems: 'center', contents: [{ type: 'text', text: '💬', size: 'sm', align: 'center' }] },
+              { type: 'box', layout: 'vertical', flex: 1, paddingStart: '12px', contents: [
+                { type: 'text', text: 'ข้อความจากแอดมิน', size: 'xs', color: '#888888' },
+                { type: 'text', text: message, size: 'sm', color: '#1565C0', wrap: true }
+              ]}
+            ]
+          } : null,
+          { type: 'separator', margin: 'lg', color: '#EEEEEE' },
+          { type: 'text', text: 'กดปุ่มด้านล่างเพื่อชำระเงินได้เลยค่ะ 👇', size: 'xs', color: '#888888', align: 'center', margin: 'md' }
+        ].filter(Boolean)
+      },
+      footer: {
+        type: 'box', layout: 'vertical', spacing: 'sm', paddingAll: '16px',
+        contents: [
+          { type: 'button', style: 'primary', color: '#E65100', height: 'sm', action: { type: 'message', label: '💳 แจ้งชำระเงินเลย', text: 'แจ้งชำระเงิน' } },
+          { type: 'button', style: 'secondary', height: 'sm', action: { type: 'message', label: '📊 ดูสถานะของฉัน', text: 'ตรวจสอบสถานะ' } }
+        ]
+      }
+    }
+  };
 
   let sent = 0, failed = 0;
 
   for (const student of unpaidStudents) {
     try {
-      await client.pushMessage({
-        to: student.line_user_id,
-        messages: [{ type: 'text', text: defaultMsg }]
-      });
+      await client.pushMessage({ to: student.line_user_id, messages: [remindFlex] });
       sent++;
     } catch (e) {
       console.error('Push failed for ' + student.name + ':', e.message);
