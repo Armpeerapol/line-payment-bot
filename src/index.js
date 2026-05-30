@@ -705,7 +705,7 @@ app.post('/admin/topics', adminAuth, async (req, res) => {
                         paddingStart: '12px',
                         contents: [
                           { type: 'text', text: 'ครบกำหนด', size: 'xs', color: '#888888' },
-                          { type: 'text', text: dueDateStr, size: 'md', weight: 'bold', color: '#E65100' }
+                          { type: 'text', text: dueDateStr, size: 'sm', weight: 'bold', color: '#E65100', wrap: true }
                         ]
                       }
                     ],
@@ -935,7 +935,7 @@ app.post('/admin/remind/:topic_id', adminAuth, async (req, res) => {
               { type: 'box', layout: 'vertical', width: '40px', height: '40px', cornerRadius: '20px', backgroundColor: '#FCE4EC', justifyContent: 'center', alignItems: 'center', contents: [{ type: 'text', text: '📅', size: 'sm', align: 'center' }] },
               { type: 'box', layout: 'vertical', flex: 1, paddingStart: '12px', contents: [
                 { type: 'text', text: 'ครบกำหนด', size: 'xs', color: '#888888' },
-                { type: 'text', text: dueDateStr, size: 'md', weight: 'bold', color: '#C62828' }
+                { type: 'text', text: dueDateStr, size: 'sm', weight: 'bold', color: '#C62828', wrap: true }
               ]}
             ]
           } : null,
