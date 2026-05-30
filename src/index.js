@@ -33,6 +33,15 @@ app.post('/webhook',
   }
 );
 
+
+// Helper: แสดงวันและเวลาภาษาไทย
+function formatThaiDateTime(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  const date = d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+  const time = d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  return `${date} เวลา ${time} น.`;
+}
 async function handleEvent(event) {
   const userId = event.source.userId;
 
@@ -453,7 +462,7 @@ async function handleSlipUpload(event, userId) {
 
     const now = new Date();
     const isLate = topicInfo?.due_date && new Date(topicInfo.due_date) < now;
-    const lateNote = isLate ? `⚠️ จ่ายล่าช้า (ครบกำหนด ${new Date(topicInfo.due_date).toLocaleDateString('th-TH')})` : null;
+    const lateNote = isLate ? `⚠️ จ่ายล่าช้า (ครบกำหนด ${formatThaiDateTime(topicInfo.due_date)})` : null;
 
     // บันทึก/อัพเดต payment
     const { error: paymentError } = await supabase
@@ -547,7 +556,7 @@ app.post('/admin/topics', adminAuth, async (req, res) => {
 
   if (students && students.length > 0) {
     const dueDateStr = due_date
-      ? new Date(due_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
+      ? formatThaiDateTime(due_date)
       : null;
     const amountStr = amount ? Number(amount).toLocaleString('th-TH') : null;
 
@@ -824,9 +833,9 @@ app.delete('/admin/topics/:id', adminAuth, async (req, res) => {
   res.json({ success: true });
 });
 
-// ดึงรายชื่อนักเรียนทั้งหมด
+// ดึงรายชื่อนักเรียนทั้งหมด (รวม line_user_id สำหรับหน้า register)
 app.get('/admin/students', adminAuth, async (req, res) => {
-  const { data, error } = await supabase.from('students').select('*').eq('is_active', true).order('name');
+  const { data, error } = await supabase.from('students').select('id, name, nickname, line_user_id').eq('is_active', true).order('name');
   if (error) return res.status(400).json({ error });
   res.json(data);
 });
@@ -882,7 +891,7 @@ app.post('/admin/remind/:topic_id', adminAuth, async (req, res) => {
   }
 
   const dueDateStr = topic?.due_date
-    ? new Date(topic.due_date).toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' })
+    ? formatThaiDateTime(topic.due_date)
     : null;
   const amountStr = topic?.amount ? Number(topic.amount).toLocaleString('th-TH') : null;
 
