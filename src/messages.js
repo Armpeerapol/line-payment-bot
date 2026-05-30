@@ -107,9 +107,10 @@ function topicSelector(topics) {
         } : null,
         topic.due_date ? {
           type: 'text',
-          text: `📅 ครบกำหนด: ${new Date(topic.due_date).toLocaleDateString('th-TH')}`,
-          size: 'sm',
-          color: '#888888'
+          text: `📅 ครบกำหนด: ${new Date(topic.due_date).toLocaleDateString('th-TH', {year:'numeric',month:'long',day:'numeric'})} เวลา ${new Date(topic.due_date).toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit'})} น.`,
+          size: 'xs',
+          color: '#888888',
+          wrap: true
         } : null,
         topic.description ? {
           type: 'text',
