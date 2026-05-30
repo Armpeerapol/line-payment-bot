@@ -678,7 +678,7 @@ function renderTable() {
   tbody.innerHTML = data.map((d, i) => `
     <tr>
       <td style="color:var(--gray-400);font-family:'IBM Plex Mono',monospace;font-size:12px">${i+1}</td>
-      <td><strong>${d.student_name}</strong></td>
+      <td><strong>${d.student_name}</strong>${d.nickname ? `<br><span style="font-size:11px;color:var(--gray-400)">(${d.nickname})</span>` : ''}</td>
       <td style="max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${d.topic_title}</td>
       <td style="font-family:'IBM Plex Mono',monospace;color:var(--green)">
         ${d.amount ? Number(d.amount).toLocaleString('th-TH') + ' ฿' : '—'}
