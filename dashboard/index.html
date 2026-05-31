@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>แดชบอร์ด · สภานักเรียน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --g950: #0A3D0F;
+  --g900: #1B5E20;
+  --g800: #2E7D32;
+  --g700: #388E3C;
+  --g600: #43A047;
+  --g400: #66BB6A;
+  --g200: #A5D6A7;
+  --g100: #C8E6C9;
+  --g50:  #F1F8E9;
+  --blue: #1565C0;
+  --blue-pale: #E3F2FD;
+  --orange: #E65100;
+  --orange-pale: #FFF3E0;
+  --red: #B71C1C;
+  --red-pale: #FFEBEE;
+  --ink: #111827;
+  --ink2: #374151;
+  --ink3: #6B7280;
+  --ink4: #9CA3AF;
+  --line: #E5E7EB;
+  --line2: #F3F4F6;
+  --bg: #F0F2F0;
+  --card: #FFFFFF;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.07);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.06);
+  --shadow-up: 0 -4px 20px rgba(0,0,0,0.08);
+  --nav-h: 56px;
+  --bottom-h: 68px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow-x: hidden; }
+body {
+  font-family: 'Noto Sans Thai', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 15px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── LOGIN ── */
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--g900);
+  position: relative;
+  overflow: hidden;
+}
+.login-screen::before {
+  content: '';
+  position: absolute;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+  top: -150px; right: -100px;
+}
+.login-screen::after {
+  content: '';
+  position: absolute;
+  width: 300px; height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(0,0,0,0.15) 0%, transparent 70%);
+  bottom: -80px; left: -60px;
+}
+.login-logo { font-size: 56px; margin-bottom: 6px; position: relative; z-index: 1; }
+.login-title { font-size: 28px; font-weight: 800; color: #fff; margin-bottom: 2px; position: relative; z-index: 1; letter-spacing: -0.5px; }
+.login-sub { font-size: 13px; color: rgba(255,255,255,0.55); margin-bottom: 32px; position: relative; z-index: 1; }
+.login-card {
+  background: white;
+  border-radius: 24px;
+  padding: 28px 24px 24px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.1);
+  position: relative; z-index: 1;
+}
+.login-card label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  display: block;
+  margin-bottom: 6px;
+}
+.login-card input {
+  width: 100%;
+  padding: 13px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 15px;
+  margin-bottom: 14px;
+  transition: border-color .2s, box-shadow .2s;
+  outline: none;
+  color: var(--ink);
+  background: var(--line2);
+}
+.login-card input:focus { border-color: var(--g700); background: white; box-shadow: 0 0 0 3px rgba(46,125,50,0.12); }
+.btn-login {
+  width: 100%;
+  padding: 14px;
+  background: var(--g800);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s, transform .1s, box-shadow .2s;
+  margin-top: 4px;
+  box-shadow: 0 4px 14px rgba(46,125,50,0.4);
+}
+.btn-login:hover { background: var(--g700); box-shadow: 0 6px 20px rgba(46,125,50,0.5); }
+.btn-login:active { transform: scale(0.98); }
+.login-error { color: var(--red); font-size: 13px; text-align: center; margin-top: 10px; display: none; font-weight: 600; }
+
+/* ── APP SHELL ── */
+#app { display: none; height: 100dvh; flex-direction: column; overflow: hidden; }
+#app.visible { display: flex; }
+
+/* Top nav */
+.topnav {
+  height: var(--nav-h);
+  background: var(--g900);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  position: relative;
+  z-index: 50;
+}
+.topnav-title { font-size: 16px; font-weight: 800; color: white; flex: 1; letter-spacing: -0.3px; }
+.topnav-subtitle { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 500; }
+.topnav-icon {
+  width: 34px; height: 34px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.12);
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s;
+}
+.topnav-icon:hover { background: rgba(255,255,255,0.2); }
+
+/* Scrollable content */
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: calc(var(--bottom-h) + 12px);
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Bottom nav */
+.bottomnav {
+  height: var(--bottom-h);
+  background: white;
+  border-top: none;
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  z-index: 50;
+  flex-shrink: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: var(--shadow-up);
+}
+.bnav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: 'Noto Sans Thai', sans-serif;
+  color: var(--ink4);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 10px 4px 8px;
+  transition: color .15s;
+  position: relative;
+}
+.bnav-item.active { color: var(--g800); }
+.bnav-item.active .bnav-icon { transform: translateY(-1px); }
+.bnav-indicator {
+  position: absolute;
+  top: 0; left: 25%; right: 25%;
+  height: 2.5px;
+  background: var(--g700);
+  border-radius: 0 0 3px 3px;
+  transform: scaleX(0);
+  transition: transform .2s cubic-bezier(0.34,1.4,0.64,1);
+}
+.bnav-item.active .bnav-indicator { transform: scaleX(1); }
+.bnav-icon { font-size: 21px; line-height: 1; transition: transform .2s; }
+
+/* ── TAB PAGES ── */
+.tab-page { display: none; padding: 14px 14px 0; }
+.tab-page.active { display: block; }
+
+/* ── SECTION HEADER ── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  margin-top: 18px;
+}
+.section-header:first-child { margin-top: 0; }
+.section-title {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--ink3);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+/* ── STAT CARDS ── */
+.stat-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px 14px 12px;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+.stat-card::after {
+  content: attr(data-icon);
+  position: absolute;
+  right: 10px; bottom: 6px;
+  font-size: 28px;
+  opacity: 0.12;
+  line-height: 1;
+}
+.stat-num {
+  font-size: 34px;
+  font-weight: 900;
+  font-family: 'IBM Plex Mono', monospace;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+.s-paid .stat-num   { color: var(--g700); }
+.s-pending .stat-num { color: var(--orange); }
+.s-unpaid .stat-num  { color: var(--red); }
+.s-total .stat-num   { color: var(--blue); }
+.stat-label { font-size: 11px; color: var(--ink3); margin-top: 3px; font-weight: 600; }
+.stat-bar { height: 3px; background: var(--line); border-radius: 99px; margin-top: 8px; overflow: hidden; }
+.stat-bar-fill { height: 100%; background: var(--g600); border-radius: 99px; transition: width .6s cubic-bezier(0.34,1.2,0.64,1); }
+
+/* ── FILTER PILLS ── */
+.filter-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  margin-bottom: 10px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.filter-scroll::-webkit-scrollbar { display: none; }
+.pill {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 99px;
+  border: 1.5px solid var(--line);
+  background: white;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+}
+.pill.active { background: var(--g800); border-color: var(--g800); color: white; }
+
+/* ── SEARCH BAR ── */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: white;
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  gap: 8px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-sm);
+  border: 1.5px solid transparent;
+  transition: border-color .2s, box-shadow .2s;
+}
+.search-bar:focus-within { border-color: var(--g400); box-shadow: 0 0 0 3px rgba(102,187,106,0.15); }
+.search-bar input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 14px;
+  padding: 11px 0;
+  background: transparent;
+  color: var(--ink);
+}
+.search-bar input::placeholder { color: var(--ink4); }
+.search-icon { color: var(--ink4); font-size: 15px; }
+
+/* ── SELECT ── */
+.select-wrap { position: relative; margin-bottom: 10px; }
+.select-wrap select {
+  width: 100%;
+  padding: 12px 36px 12px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 14px;
+  background: white;
+  appearance: none;
+  outline: none;
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+.select-arrow { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); color: var(--ink3); pointer-events: none; font-size: 12px; }
+
+/* ── PAYMENT CARDS ── */
+.payment-list { display: flex; flex-direction: column; gap: 8px; }
+.pay-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 14px 14px 12px 14px;
+  box-shadow: var(--shadow-sm);
+  border-left: 3.5px solid transparent;
+  transition: transform .1s;
+  position: relative;
+  overflow: hidden;
+}
+.pay-card:active { transform: scale(0.99); }
+.pay-card.status-pending { border-left-color: var(--orange); }
+.pay-card.status-approved { border-left-color: var(--g600); }
+.pay-card.status-rejected { border-left-color: var(--red); }
+.pay-card.status-not_paid { border-left-color: var(--line); }
+
+.pay-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.pay-name { font-size: 15px; font-weight: 800; color: var(--ink); letter-spacing: -0.2px; }
+.pay-nick { font-size: 11px; color: var(--ink4); margin-top: 1px; }
+.pay-topic { font-size: 12px; color: var(--ink3); margin-bottom: 8px; font-weight: 500; }
+.pay-meta { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px; }
+.pay-amount {
+  font-size: 14px; font-weight: 700; color: var(--g800);
+  font-family: 'IBM Plex Mono', monospace;
+  background: var(--g50);
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+.pay-time { font-size: 11px; color: var(--ink4); }
+.pay-late { font-size: 11px; color: var(--red); font-weight: 700; background: var(--red-pale); padding: 1px 6px; border-radius: 5px; }
+.pay-actions { display: flex; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line2); }
+.btn-approve, .btn-reject {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .1s, opacity .15s;
+}
+.btn-approve:active, .btn-reject:active { transform: scale(0.96); }
+.btn-approve { background: var(--g50); color: var(--g800); }
+.btn-reject { background: var(--red-pale); color: var(--red); }
+.slip-thumb {
+  width: 46px; height: 46px;
+  border-radius: 10px;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid var(--line);
+  flex-shrink: 0;
+  transition: transform .15s, border-color .15s;
+}
+.slip-thumb:hover { transform: scale(1.05); border-color: var(--g400); }
+
+/* ── BADGE ── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  flex-shrink: 0;
+  letter-spacing: 0.2px;
+}
+.b-approved { background: var(--g100); color: var(--g900); }
+.b-pending   { background: var(--orange-pale); color: var(--orange); }
+.b-rejected  { background: var(--red-pale); color: var(--red); }
+.b-not_paid  { background: var(--line2); color: var(--ink3); }
+.b-reg   { background: var(--g100); color: var(--g900); }
+.b-noreg { background: var(--line2); color: var(--ink3); }
+
+/* ── FAB ── */
+.fab {
+  position: fixed;
+  bottom: calc(var(--bottom-h) + 14px);
+  right: 14px;
+  height: 50px;
+  padding: 0 18px;
+  border-radius: 25px;
+  background: var(--orange);
+  color: white;
+  border: none;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Noto Sans Thai', sans-serif;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(230,81,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  z-index: 40;
+  transition: transform .15s, box-shadow .15s;
+}
+.fab:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(230,81,0,0.55); }
+.fab:active { transform: scale(0.95); }
+
+/* ── FORM CARDS ── */
+.form-card {
+  background: white;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.form-card-header {
+  padding: 13px 16px;
+  background: linear-gradient(135deg, var(--g50) 0%, white 100%);
+  border-bottom: 1px solid var(--line);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--g900);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  letter-spacing: 0.1px;
+}
+.form-card-body { padding: 14px; }
+.form-field { margin-bottom: 10px; }
+.form-field label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink3);
+  display: block;
+  margin-bottom: 5px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+.form-field input, .form-field textarea, .form-field select {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+  background: var(--line2);
+  color: var(--ink);
+}
+.form-field input:focus, .form-field textarea:focus { border-color: var(--g700); background: white; box-shadow: 0 0 0 3px rgba(46,125,50,0.1); }
+.time-row { display: flex; gap: 8px; }
+.time-row input { flex: 1; }
+.btn-submit {
+  width: 100%;
+  padding: 13px;
+  background: var(--g800);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .2s, transform .1s, box-shadow .2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(46,125,50,0.3);
+}
+.btn-submit:hover { background: var(--g700); }
+.btn-submit:active { transform: scale(0.98); }
+
+/* ── LIST ITEMS ── */
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--line2);
+  gap: 10px;
+  transition: background .1s;
+}
+.list-item:last-child { border-bottom: none; }
+.list-item:active { background: var(--line2); }
+.list-item-main { flex: 1; min-width: 0; }
+.list-item-name { font-size: 14px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-item-sub { font-size: 12px; color: var(--ink4); margin-top: 1px; }
+.btn-delete {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  background: var(--red-pale);
+  color: var(--red);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .15s;
+}
+.btn-delete:hover { background: #FFCDD2; }
+
+/* ── REG CARDS ── */
+.reg-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 7px;
+  transition: transform .1s;
+}
+.reg-card:active { transform: scale(0.99); }
+.reg-avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.reg-avatar.done { background: var(--g100); }
+.reg-avatar.not  { background: var(--line2); }
+.reg-main { flex: 1; min-width: 0; }
+.reg-name { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.reg-nick { font-size: 12px; color: var(--ink4); }
+
+/* ── MODAL (bottom sheet) ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s;
+  backdrop-filter: blur(2px);
+}
+.modal-overlay.show { opacity: 1; pointer-events: all; }
+.modal-sheet {
+  background: white;
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  padding: 12px 20px calc(env(safe-area-inset-bottom, 0px) + 24px);
+  transform: translateY(100%);
+  transition: transform .35s cubic-bezier(0.32,0.72,0,1);
+  max-height: 92dvh;
+  overflow-y: auto;
+}
+.modal-overlay.show .modal-sheet { transform: translateY(0); }
+.modal-handle { width: 36px; height: 4px; background: var(--line); border-radius: 99px; margin: 0 auto 16px; }
+.modal-title { font-size: 19px; font-weight: 800; margin-bottom: 4px; letter-spacing: -0.4px; }
+.modal-sub { font-size: 13px; color: var(--ink3); margin-bottom: 16px; }
+.modal-img { width: 100%; border-radius: 14px; margin-bottom: 14px; max-height: 320px; object-fit: contain; background: var(--line2); }
+.modal-info { font-size: 13px; color: var(--ink2); margin-bottom: 14px; padding: 10px 12px; background: var(--line2); border-radius: 10px; }
+.modal-btns { display: flex; gap: 8px; }
+.modal-btns button {
+  flex: 1;
+  padding: 13px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform .1s;
+}
+.modal-btns button:active { transform: scale(0.97); }
+.mbt-approve { background: var(--g100); color: var(--g800); }
+.mbt-reject  { background: var(--red-pale); color: var(--red); }
+.mbt-close   { background: var(--line2); color: var(--ink2); flex: 0.55 !important; }
+
+.remind-field label {
+  font-size: 11px; font-weight: 700; color: var(--ink3);
+  display: block; margin-bottom: 5px;
+  text-transform: uppercase; letter-spacing: 0.4px;
+}
+.remind-field select, .remind-field textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  font-family: 'Noto Sans Thai', sans-serif;
+  font-size: 14px;
+  outline: none;
+  margin-bottom: 12px;
+  background: var(--line2);
+  transition: border-color .2s, box-shadow .2s;
+}
+.remind-field select:focus, .remind-field textarea:focus { border-color: var(--g700); background: white; box-shadow: 0 0 0 3px rgba(46,125,50,0.1); }
+.remind-field textarea { resize: vertical; }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed;
+  bottom: calc(var(--bottom-h) + 10px);
+  left: 12px; right: 12px;
+  background: var(--ink);
+  color: white;
+  padding: 13px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 999;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: all .3s cubic-bezier(0.34,1.2,0.64,1);
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+.toast.success { background: var(--g800); }
+.toast.error   { background: var(--red); }
+
+/* ── EMPTY ── */
+.empty-state { padding: 52px 20px; text-align: center; color: var(--ink4); }
+.empty-icon  { font-size: 48px; margin-bottom: 10px; opacity: 0.6; }
+.empty-text  { font-size: 14px; font-weight: 600; }
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(--line); margin: 14px 0; }
+
+
+/* ═══════════════════════════════════════
+   DESKTOP (≥768px) — sidebar layout
+═══════════════════════════════════════ */
+@media (min-width: 768px) {
+  :root {
+    --nav-h: 60px;
+    --bottom-h: 0px;
+    --sidebar-w: 220px;
+  }
+
+  /* App shell: top nav + body row */
+  #app.visible {
+    display: grid;
+    grid-template-rows: var(--nav-h) 1fr;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    grid-template-areas:
+      "topnav topnav"
+      "sidebar content";
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .topnav {
+    grid-area: topnav;
+    padding: 0 24px;
+  }
+  .topnav-title { font-size: 17px; }
+
+  /* Sidebar แทน bottom nav */
+  .bottomnav {
+    grid-area: sidebar;
+    flex-direction: column;
+    height: auto;
+    border-top: none;
+    border-right: 1px solid var(--line);
+    box-shadow: none;
+    padding: 16px 0;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 4px;
+    background: white;
+  }
+  .bnav-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 0;
+    flex: 0 0 auto;
+  }
+  .bnav-item.active {
+    background: var(--g50);
+    color: var(--g800);
+  }
+  .bnav-item.active::before { display: none; }
+  .bnav-indicator {
+    display: none;
+  }
+  .bnav-item.active::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--g700);
+    border-radius: 0 3px 3px 0;
+  }
+  .bnav-icon { font-size: 18px; }
+
+  /* Content area */
+  .page-content {
+    grid-area: content;
+    overflow-y: auto;
+    padding-bottom: 24px;
+    background: var(--bg);
+  }
+
+  /* Tab pages: wider layout */
+  .tab-page { padding: 24px 28px; max-width: 1000px; }
+
+  /* Stats: 4 คอลัมน์บนคอม */
+  .stat-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-num { font-size: 38px; }
+
+  /* Payment cards: 2 คอลัมน์ */
+  .payment-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* Reg cards: 3 คอลัมน์ */
+  #regList {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  #regList .reg-card { margin-bottom: 0; }
+
+  /* Manage: 2 คอลัมน์ */
+  #page-manage .form-card-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* FAB ซ่อนบนคอม ใช้ header button แทน */
+  .fab { display: none !important; }
+
+  /* เพิ่มปุ่มทวงเงินใน topnav บนคอม */
+  .topnav-remind {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--orange);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-family: 'Noto Sans Thai', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .topnav-remind:hover { background: #BF360C; }
+
+  /* Modal เป็น centered dialog บนคอม */
+  .modal-overlay { align-items: center; }
+  .modal-sheet {
+    border-radius: 20px;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 28px 28px;
+    transform: scale(0.95) translateY(0);
+    transition: transform .25s cubic-bezier(0.34,1.2,0.64,1), opacity .25s;
+  }
+  .modal-overlay.show .modal-sheet { transform: scale(1) translateY(0); }
+  .modal-handle { display: none; }
+
+  /* Filter scroll ไม่ต้อง scroll บนคอม */
+  .filter-scroll { flex-wrap: wrap; overflow-x: visible; }
+
+  /* Select & search row */
+  .desktop-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .desktop-controls .select-wrap { flex: 1; margin-bottom: 0; }
+  .desktop-controls .search-bar { flex: 1.5; margin-bottom: 0; }
+
+  /* Toast ย้ายไปมุมขวาล่าง */
+  .toast {
+    left: auto;
+    right: 24px;
+    bottom: 24px;
+    max-width: 320px;
+    text-align: left;
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-screen">
+    <div class="login-logo">🏫</div>
+    <div class="login-title">สภานักเรียน</div>
+    <div class="login-sub">ระบบจัดการการชำระเงิน</div>
+    <div class="login-card">
+      <label>รหัสผ่านแอดมิน</label>
+      <input type="password" id="adminPassword" placeholder="••••••••" />
+      <label>Admin Secret Key</label>
+      <input type="text" id="adminKey" placeholder="sc.xxxx" />
+      <button class="btn-login" onclick="doLogin()">เข้าสู่ระบบ</button>
+      <div class="login-error" id="loginError">รหัสผ่านไม่ถูกต้อง</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- Top nav -->
+  <div class="topnav">
+    <div>
+      <div class="topnav-title">🏫 สภานักเรียน</div>
+      <div class="topnav-subtitle" id="topnavSub">แดชบอร์ด</div>
+    </div>
+    <button class="topnav-remind" id="topnavRemind" onclick="openRemindModal()" style="display:none">📢 ทวงเงิน</button>
+    <button class="topnav-icon" onclick="logout()" title="ออกจากระกบ">↩</button>
+  </div>
+
+  <!-- Page content -->
+  <div class="page-content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="tab-page active" id="page-dashboard">
+      <div class="stat-row" id="statsGrid"></div>
+
+      <div class="section-title">รายการชำระเงิน</div>
+
+      <div class="desktop-controls">
+        <div class="select-wrap" style="margin-bottom:0">
+          <select id="topicFilter" onchange="loadDashboard()">
+            <option value="">📋 ทุกหัวข้อ</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="search-bar" style="margin-bottom:0">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInputDesktop" placeholder="ค้นหาชื่อ..." oninput="syncSearch(this)" />
+        </div>
+      </div>
+
+      <div class="filter-scroll" id="statusPills">
+        <button class="pill active" onclick="filterStatus('all',this)">ทั้งหมด</button>
+        <button class="pill" onclick="filterStatus('not_paid',this)">❌ ยังไม่จ่าย</button>
+        <button class="pill" onclick="filterStatus('pending',this)">⏳ รอตรวจ</button>
+        <button class="pill" onclick="filterStatus('approved',this)">✅ อนุมัติ</button>
+      </div>
+
+      <div class="search-bar" id="mobileSearch">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="ค้นหาชื่อ..." oninput="renderCards()" />
+      </div>
+
+      <div class="payment-list" id="paymentList"></div>
+      <div class="empty-state" id="emptyState" style="display:none">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">ไม่พบรายการ</div>
+      </div>
+    </div>
+
+    <!-- ── REGISTER ── -->
+    <div class="tab-page" id="page-register">
+      <div class="stat-row" id="regStats"></div>
+
+      <div class="filter-scroll">
+        <button class="pill active" onclick="filterReg('all',this)">ทั้งหมด</button>
+        <button class="pill" onclick="filterReg('registered',this)">✅ ลงแล้ว</button>
+        <button class="pill" onclick="filterReg('not_registered',this)">❌ ยังไม่ลง</button>
+      </div>
+
+      <div class="search-bar">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="regSearch" placeholder="ค้นหาชื่อ..." oninput="renderRegList()" />
+      </div>
+
+      <div class="payment-list" id="regList"></div>
+      <div class="empty-state" id="regEmpty" style="display:none">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">ไม่พบรายชื่อ</div>
+      </div>
+    </div>
+
+    <!-- ── MANAGE ── -->
+    <div class="tab-page" id="page-manage">
+
+      <div class="form-card-wrap">
+      <!-- Add Student -->
+      <div class="form-card">
+        <div class="form-card-header">👤 เพิ่มนักเรียน</div>
+        <div class="form-card-body">
+          <div class="form-field">
+            <label>ชื่อ-นามสกุล *</label>
+            <input type="text" id="newStudentName" placeholder="เช่น นายสมชาย ใจดี" />
+          </div>
+          <div class="form-field">
+            <label>ชื่อเล่น</label>
+            <input type="text" id="newStudentNickname" placeholder="เช่น โอ๊ต" />
+          </div>
+          <button class="btn-submit" onclick="addStudent()">+ เพิ่มนักเรียน</button>
+        </div>
+        <div id="studentList"></div>
+      </div>
+
+      <!-- Add Topic -->
+      <div class="form-card">
+        <div class="form-card-header">📋 เพิ่มหัวข้อการชำระเงิน</div>
+        <div class="form-card-body">
+          <div class="form-field">
+            <label>หัวข้อ *</label>
+            <input type="text" id="newTopicTitle" placeholder="เช่น ค่ากิจกรรมทัศนศึกษา" />
+          </div>
+          <div class="form-field">
+            <label>จำนวนเงิน (บาท)</label>
+            <input type="number" id="newTopicAmount" placeholder="เช่น 200" />
+          </div>
+          <div class="form-field">
+            <label>วันและเวลาครบกำหนด</label>
+            <div class="time-row">
+              <input type="date" id="newTopicDue" />
+              <input type="time" id="newTopicDueTime" value="23:59" style="flex:0.7" />
+            </div>
+          </div>
+          <div class="form-field">
+            <label>รายละเอียด</label>
+            <input type="text" id="newTopicDesc" placeholder="รายละเอียดเพิ่มเติม..." />
+          </div>
+          <button class="btn-submit" onclick="addTopic()">+ เพิ่มหัวข้อ</button>
+        </div>
+        <div id="topicList"></div>
+      </div>
+
+      </div><!-- /form-card-wrap -->
+
+      <!-- CSV -->
+      <button class="btn-submit" style="background:var(--blue);margin-bottom:12px" onclick="exportCSV()">
+        📥 ดาวน์โหลด CSV
+      </button>
+    </div>
+
+  </div><!-- /page-content -->
+
+  <!-- Bottom nav -->
+  <div class="bottomnav">
+    <button class="bnav-item active" id="bnav-dashboard" onclick="showTab('dashboard')">
+      <span class="bnav-icon">📊</span>แดชบอร์ด
+    </button>
+    <button class="bnav-item" id="bnav-register" onclick="showTab('register')">
+      <span class="bnav-icon">👥</span>ลงทะเบียน
+    </button>
+    <button class="bnav-item" id="bnav-manage" onclick="showTab('manage')">
+      <span class="bnav-icon">⚙️</span>จัดการ
+    </button>
+  </div>
+</div>
+
+<!-- FAB ทวงเงิน -->
+<button class="fab" id="remindFab" onclick="openRemindModal()" style="display:none">📢 ทวงเงิน</button>
+
+<!-- SLIP MODAL -->
+<div class="modal-overlay" id="slipModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📸 ตรวจสอบสลิป</div>
+    <img class="modal-img" id="slipImg" src="" alt="สลิป" />
+    <div class="modal-info" id="slipInfo"></div>
+    <div class="modal-btns">
+      <button class="mbt-approve" onclick="reviewPayment('approved')">✅ อนุมัติ</button>
+      <button class="mbt-reject" onclick="reviewPayment('rejected')">❌ ปฏิเสธ</button>
+      <button class="mbt-close" onclick="closeModal()">ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- REMIND MODAL -->
+<div class="modal-overlay" id="remindModal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📢 ทวงเงิน</div>
+    <div class="modal-sub">ส่งแจ้งเตือนเฉพาะคนที่ <strong>ยังไม่จ่าย</strong> เท่านั้น</div>
+    <div class="remind-field">
+      <label>หัวข้อที่ต้องการทวง</label>
+      <select id="remindTopicSelect"></select>
+      <label>ข้อความเพิ่มเติม (ไม่บังคับ)</label>
+      <textarea id="remindMessage" rows="3" placeholder="ปล่อยว่างเพื่อใช้ข้อความอัตโนมัติ..."></textarea>
+    </div>
+    <div class="modal-btns">
+      <button style="background:var(--orange);color:white;border-radius:12px;padding:13px;font-weight:700;font-family:'Sarabun',sans-serif;cursor:pointer;border:none;flex:1" onclick="sendRemind()">📤 ส่งทวงเงิน</button>
+      <button class="mbt-close" onclick="closeRemindModal()">ยกเลิก</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let ADMIN_KEY = '';
+let allData = [];
+let currentStatus = 'all';
+let currentPaymentId = null;
+let allStudentsReg = [];
+let regFilter = 'all';
+
+// ── Login ──
+function doLogin() {
+  const pw = document.getElementById('adminPassword').value;
+  const key = document.getElementById('adminKey').value;
+  if (!pw || !key) { showToast('กรุณากรอกข้อมูลให้ครบ', 'error'); return; }
+  ADMIN_KEY = key;
+  fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } }).then(r => {
+    if (r.ok) {
+      localStorage.setItem('adminKey', ADMIN_KEY);
+      showApp();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  });
+}
+
+function showApp() {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  loadDashboard();
+  loadTopicFilter();
+}
+
+function logout() {
+  localStorage.removeItem('adminKey');
+  location.reload();
+}
+
+// ── Auto login ──
+window.onload = () => {
+  const saved = localStorage.getItem('adminKey');
+  if (saved) {
+    ADMIN_KEY = saved;
+    fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } }).then(r => {
+      if (r.ok) showApp(); else localStorage.removeItem('adminKey');
+    });
+  }
+  document.getElementById('adminKey').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+};
+
+// ── Tabs ──
+function showTab(tab) {
+  const tabs = ['dashboard', 'register', 'manage'];
+  const labels = { dashboard: 'แดชบอร์ด', register: 'ลงทะเบียน', manage: 'จัดการ' };
+  tabs.forEach(t => {
+    document.getElementById('page-' + t).classList.toggle('active', t === tab);
+    document.getElementById('bnav-' + t).classList.toggle('active', t === tab);
+  });
+  document.getElementById('topnavSub').textContent = labels[tab];
+  const isDesktop = window.innerWidth >= 768;
+  const showRemind = tab === 'dashboard';
+  document.getElementById('remindFab').style.display = (!isDesktop && showRemind) ? 'flex' : 'none';
+  const topnavRemind = document.getElementById('topnavRemind');
+  if (topnavRemind) topnavRemind.style.display = (isDesktop && showRemind) ? 'flex' : 'none';
+  if (tab === 'register') loadRegister();
+  if (tab === 'manage') loadManageLists();
+}
+
+// init fab
+document.getElementById('remindFab').style.display = 'none';
+
+// ── Dashboard ──
+async function loadDashboard() {
+  const topicId = document.getElementById('topicFilter').value;
+  const url = '/admin/dashboard' + (topicId ? `?topic_id=${topicId}` : '');
+  const r = await fetch(url, { headers: { 'x-admin-key': ADMIN_KEY } });
+  allData = await r.json();
+  renderStats();
+  renderCards();
+  const _isDesktop = window.innerWidth >= 768;
+  document.getElementById('remindFab').style.display = _isDesktop ? 'none' : 'flex';
+  const _tr = document.getElementById('topnavRemind');
+  if (_tr) _tr.style.display = _isDesktop ? 'flex' : 'none';
+}
+
+function renderStats() {
+  const total = allData.length;
+  const paid = allData.filter(d => d.status === 'approved').length;
+  const pending = allData.filter(d => d.status === 'pending').length;
+  const unpaid = allData.filter(d => d.status === 'not_paid').length;
+  const pct = total ? Math.round(paid/total*100) : 0;
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card s-paid" data-icon="✅">
+      <div class="stat-num">${paid}</div>
+      <div class="stat-label">✅ จ่ายแล้ว</div>
+      <div class="stat-bar"><div class="stat-bar-fill" style="width:${pct}%"></div></div>
+    </div>
+    <div class="stat-card s-pending" data-icon="⏳">
+      <div class="stat-num">${pending}</div>
+      <div class="stat-label">⏳ รอตรวจ</div>
+    </div>
+    <div class="stat-card s-unpaid" data-icon="❌">
+      <div class="stat-num">${unpaid}</div>
+      <div class="stat-label">❌ ยังไม่จ่าย</div>
+    </div>
+    <div class="stat-card s-total" data-icon="📋">
+      <div class="stat-num">${total}</div>
+      <div class="stat-label">📋 ทั้งหมด</div>
+    </div>
+  `;
+}
+
+function filterStatus(status, btn) {
+  currentStatus = status;
+  document.querySelectorAll('#statusPills .pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderCards();
+}
+
+const badgeMap = {
+  approved: '<span class="badge b-approved">✅ จ่ายแล้ว</span>',
+  pending:  '<span class="badge b-pending">⏳ รอตรวจ</span>',
+  rejected: '<span class="badge b-rejected">❌ ปฏิเสธ</span>',
+  not_paid: '<span class="badge b-not_paid">ยังไม่จ่าย</span>'
+};
+
+function renderCards() {
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  let data = allData;
+  if (currentStatus !== 'all') data = data.filter(d => d.status === currentStatus);
+  if (search) data = data.filter(d => d.student_name.toLowerCase().includes(search) || (d.nickname||'').toLowerCase().includes(search));
+
+  const list = document.getElementById('paymentList');
+  const empty = document.getElementById('emptyState');
+
+  if (!data.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  list.innerHTML = data.map(d => `
+    <div class="pay-card status-${d.status}">
+      <div class="pay-top">
+        <div>
+          <div class="pay-name">${d.student_name}</div>
+          ${d.nickname ? `<div class="pay-nick">(${d.nickname})</div>` : ''}
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          ${d.slip_url ? `<img class="slip-thumb" src="${d.slip_url}" onclick="openSlip('${d.slip_url}','${d.payment_id}','${d.student_name}','${d.topic_title}')" />` : ''}
+          ${badgeMap[d.status] || ''}
+        </div>
+      </div>
+      <div class="pay-topic">📋 ${d.topic_title}</div>
+      <div class="pay-meta">
+        <span class="pay-amount">${d.amount ? Number(d.amount).toLocaleString('th-TH') + ' ฿' : '—'}</span>
+        <span>
+          <span class="pay-time">${d.submitted_at ? new Date(d.submitted_at).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}) : '—'}</span>
+          ${d.note && d.note.includes('ล่าช้า') ? ' <span class="pay-late">⚠️ ล่าช้า</span>' : ''}
+        </span>
+      </div>
+      ${d.status === 'pending' ? `
+      <div class="pay-actions">
+        <button class="btn-approve" onclick="quickReview('${d.payment_id}','approved')">✅ อนุมัติ</button>
+        <button class="btn-reject" onclick="quickReview('${d.payment_id}','rejected')">❌ ปฏิเสธ</button>
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+
+// ── Review ──
+function openSlip(url, paymentId, name, topic) {
+  currentPaymentId = paymentId;
+  document.getElementById('slipImg').src = url;
+  document.getElementById('slipInfo').innerHTML = `👤 ${name} · 📋 ${topic}`;
+  document.getElementById('slipModal').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('slipModal').classList.remove('show');
+  currentPaymentId = null;
+}
+async function reviewPayment(status) {
+  if (!currentPaymentId) return;
+  await doReview(currentPaymentId, status);
+  closeModal();
+}
+async function quickReview(id, status) { await doReview(id, status); }
+async function doReview(id, status) {
+  const r = await fetch(`/admin/payments/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
+    body: JSON.stringify({ status })
+  });
+  if (r.ok) {
+    showToast(status === 'approved' ? '✅ อนุมัติแล้ว' : '❌ ปฏิเสธแล้ว', status === 'approved' ? 'success' : 'error');
+    loadDashboard();
+  }
+}
+
+// ── Topic Filter ──
+async function loadTopicFilter() {
+  const r = await fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } });
+  const data = await r.json();
+  const topics = [...new Map(data.map(d => [d.topic_id, d])).values()];
+  const sel = document.getElementById('topicFilter');
+  const curr = sel.value;
+  sel.innerHTML = '<option value="">📋 ทุกหัวข้อ</option>' +
+    topics.map(t => `<option value="${t.topic_id}">${t.topic_title}</option>`).join('');
+  sel.value = curr;
+}
+
+// ── Register ──
+async function loadRegister() {
+  const r = await fetch('/admin/students', { headers: { 'x-admin-key': ADMIN_KEY } });
+  allStudentsReg = await r.json();
+  renderRegStats();
+  renderRegList();
+}
+function renderRegStats() {
+  const total = allStudentsReg.length;
+  const reg = allStudentsReg.filter(s => s.line_user_id).length;
+  const pct = total ? Math.round(reg/total*100) : 0;
+  document.getElementById('regStats').innerHTML = `
+    <div class="stat-card s-total" data-icon="📋">
+      <div class="stat-num">${total}</div>
+      <div class="stat-label">นักเรียนทั้งหมด</div>
+    </div>
+    <div class="stat-card s-paid" data-icon="✅">
+      <div class="stat-num">${reg}</div>
+      <div class="stat-label">✅ ลงทะเบียนแล้ว</div>
+      <div class="stat-bar"><div class="stat-bar-fill" style="width:${pct}%"></div></div>
+    </div>
+  `;
+}
+function filterReg(status, btn) {
+  regFilter = status;
+  document.querySelectorAll('#page-register .pill').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  renderRegList();
+}
+function renderRegList() {
+  const search = document.getElementById('regSearch').value.toLowerCase();
+  let data = allStudentsReg;
+  if (regFilter === 'registered') data = data.filter(s => s.line_user_id);
+  if (regFilter === 'not_registered') data = data.filter(s => !s.line_user_id);
+  if (search) data = data.filter(s => s.name.toLowerCase().includes(search) || (s.nickname||'').toLowerCase().includes(search));
+
+  const list = document.getElementById('regList');
+  const empty = document.getElementById('regEmpty');
+  if (!data.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  list.innerHTML = data.map((s,i) => `
+    <div class="reg-card" style="margin-bottom:8px">
+      <div class="reg-avatar ${s.line_user_id ? 'done' : 'not'}">${s.line_user_id ? '✅' : '👤'}</div>
+      <div class="reg-main">
+        <div class="reg-name">${s.name}</div>
+        ${s.nickname ? `<div class="reg-nick">${s.nickname}</div>` : ''}
+      </div>
+      <span class="badge ${s.line_user_id ? 'b-reg' : 'b-noreg'}">${s.line_user_id ? 'ลงแล้ว' : 'ยังไม่ลง'}</span>
+    </div>
+  `).join('');
+}
+
+// ── Manage ──
+async function addStudent() {
+  const name = document.getElementById('newStudentName').value.trim();
+  const nickname = document.getElementById('newStudentNickname').value.trim();
+  if (!name) { showToast('กรุณากรอกชื่อ', 'error'); return; }
+  const r = await fetch('/admin/students', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
+    body: JSON.stringify({ name, nickname })
+  });
+  if (r.ok) {
+    showToast('✅ เพิ่มนักเรียนแล้ว', 'success');
+    document.getElementById('newStudentName').value = '';
+    document.getElementById('newStudentNickname').value = '';
+    loadManageLists();
+  } else showToast('เกิดข้อผิดพลาด', 'error');
+}
+
+async function addTopic() {
+  const title = document.getElementById('newTopicTitle').value.trim();
+  const amount = document.getElementById('newTopicAmount').value;
+  const dueDate = document.getElementById('newTopicDue').value;
+  const dueTime = document.getElementById('newTopicDueTime').value || '23:59';
+  const due_date = dueDate ? `${dueDate}T${dueTime}:00` : null;
+  const description = document.getElementById('newTopicDesc').value.trim();
+  if (!title) { showToast('กรุณากรอกหัวข้อ', 'error'); return; }
+  const r = await fetch('/admin/topics', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
+    body: JSON.stringify({ title, amount: amount || null, due_date, description })
+  });
+  if (r.ok) {
+    const result = await r.json();
+    const notified = result.notified || 0;
+    showToast(`✅ เพิ่มหัวข้อแล้ว${notified > 0 ? ` · แจ้ง ${notified} คน 📢` : ''}`, 'success');
+    ['newTopicTitle','newTopicAmount','newTopicDue','newTopicDesc'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('newTopicDueTime').value = '23:59';
+    loadManageLists(); loadTopicFilter();
+  } else showToast('เกิดข้อผิดพลาด', 'error');
+}
+
+async function loadManageLists() {
+  const rs = await fetch('/admin/students', { headers: { 'x-admin-key': ADMIN_KEY } });
+  const students = await rs.json();
+  document.getElementById('studentList').innerHTML = students.length
+    ? students.map(s => {
+        const safe = s.name.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        return `<div class="list-item">
+          <div class="list-item-main">
+            <div class="list-item-name">👤 ${s.name}</div>
+            ${s.nickname ? `<div class="list-item-sub">${s.nickname}</div>` : ''}
+          </div>
+          <button class="btn-delete" onclick="deleteStudent('${s.id}','${safe}')">ลบ</button>
+        </div>`;
+      }).join('')
+    : '<div style="padding:16px;font-size:13px;color:var(--ink3)">ยังไม่มีนักเรียน</div>';
+
+  const rt = await fetch('/admin/topics', { headers: { 'x-admin-key': ADMIN_KEY } });
+  const topics = await rt.json();
+  document.getElementById('topicList').innerHTML = topics.length
+    ? topics.map(t => {
+        const safe = t.title.replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+        return `<div class="list-item">
+          <div class="list-item-main">
+            <div class="list-item-name">📋 ${t.title}</div>
+            ${t.amount ? `<div class="list-item-sub">${Number(t.amount).toLocaleString('th-TH')} บาท</div>` : ''}
+          </div>
+          <button class="btn-delete" onclick="deleteTopic('${t.id}','${safe}')">ลบ</button>
+        </div>`;
+      }).join('')
+    : '<div style="padding:16px;font-size:13px;color:var(--ink3)">ยังไม่มีหัวข้อ</div>';
+}
+
+async function deleteStudent(id, name) {
+  const n = name.replace(/&quot;/g,'"');
+  if (!confirm(`ลบ "${n}" ?\n\nข้อมูลการชำระเงินจะถูกลบด้วย`)) return;
+  const r = await fetch(`/admin/students/${id}`, { method: 'DELETE', headers: { 'x-admin-key': ADMIN_KEY } });
+  if (r.ok) { showToast(`🗑️ ลบ ${n} แล้ว`); loadManageLists(); loadDashboard(); }
+  else showToast('เกิดข้อผิดพลาด', 'error');
+}
+
+async function deleteTopic(id, title) {
+  const t = title.replace(/&quot;/g,'"');
+  if (!confirm(`ลบหัวข้อ "${t}" ?\n\nข้อมูลการชำระเงินจะถูกลบด้วย`)) return;
+  const r = await fetch(`/admin/topics/${id}`, { method: 'DELETE', headers: { 'x-admin-key': ADMIN_KEY } });
+  if (r.ok) { showToast(`🗑️ ลบหัวข้อแล้ว`); loadManageLists(); loadDashboard(); loadTopicFilter(); }
+  else showToast('เกิดข้อผิดพลาด', 'error');
+}
+
+function exportCSV() {
+  const headers = ['ชื่อ','หัวข้อ','จำนวน','สถานะ','เวลาส่ง'];
+  const rows = allData.map(d => [d.student_name, d.topic_title, d.amount || '', d.status, d.submitted_at ? new Date(d.submitted_at).toLocaleString('th-TH') : '']);
+  const csv = [headers,...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `payment_${Date.now()}.csv`; a.click();
+}
+
+// ── Remind ──
+async function openRemindModal() {
+  const r = await fetch('/admin/topics', { headers: { 'x-admin-key': ADMIN_KEY } });
+  const topics = await r.json();
+  document.getElementById('remindTopicSelect').innerHTML = topics.map(t => `<option value="${t.id}">${t.title}</option>`).join('');
+  document.getElementById('remindModal').classList.add('show');
+}
+function closeRemindModal() { document.getElementById('remindModal').classList.remove('show'); }
+async function sendRemind() {
+  const topicId = document.getElementById('remindTopicSelect').value;
+  const message = document.getElementById('remindMessage').value.trim();
+  if (!topicId) { showToast('กรุณาเลือกหัวข้อ', 'error'); return; }
+  const r = await fetch(`/admin/remind/${topicId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
+    body: JSON.stringify({ message: message || null })
+  });
+  const result = await r.json();
+  closeRemindModal();
+  if (result.sent === 0) showToast('✅ ทุกคนจ่ายแล้ว', 'success');
+  else showToast(`📤 ส่งทวง ${result.sent} คน`, 'success');
+}
+
+// ── Sync search desktop/mobile ──
+function syncSearch(el) {
+  document.getElementById('searchInput').value = el.value;
+  renderCards();
+}
+
+// ── Responsive: hide/show elements ──
+function applyResponsive() {
+  const isDesktop = window.innerWidth >= 768;
+  const mobileSearch = document.getElementById('mobileSearch');
+  if (mobileSearch) mobileSearch.style.display = isDesktop ? 'none' : 'flex';
+}
+window.addEventListener('resize', applyResponsive);
+document.addEventListener('DOMContentLoaded', applyResponsive);
+
+// ── Toast ──
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ── Modal close on backdrop ──
+['slipModal','remindModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target.id === id) { closeModal(); closeRemindModal(); }
+  });
+});
+</script>
+</body>
+</html>
