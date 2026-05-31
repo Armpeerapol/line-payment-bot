@@ -674,6 +674,174 @@ body {
 
 /* ── DIVIDER ── */
 .divider { height: 1px; background: var(--line); margin: 14px 0; }
+
+
+/* ═══════════════════════════════════════
+   DESKTOP (≥768px) — sidebar layout
+═══════════════════════════════════════ */
+@media (min-width: 768px) {
+  :root {
+    --nav-h: 60px;
+    --bottom-h: 0px;
+    --sidebar-w: 220px;
+  }
+
+  /* App shell: top nav + body row */
+  #app.visible {
+    display: grid;
+    grid-template-rows: var(--nav-h) 1fr;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    grid-template-areas:
+      "topnav topnav"
+      "sidebar content";
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .topnav {
+    grid-area: topnav;
+    padding: 0 24px;
+  }
+  .topnav-title { font-size: 17px; }
+
+  /* Sidebar แทน bottom nav */
+  .bottomnav {
+    grid-area: sidebar;
+    flex-direction: column;
+    height: auto;
+    border-top: none;
+    border-right: 1px solid var(--line);
+    box-shadow: none;
+    padding: 16px 0;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 4px;
+    background: white;
+  }
+  .bnav-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 12px 20px;
+    font-size: 14px;
+    border-radius: 0;
+    flex: 0 0 auto;
+  }
+  .bnav-item.active {
+    background: var(--g50);
+    color: var(--g800);
+  }
+  .bnav-item.active::before { display: none; }
+  .bnav-indicator {
+    display: none;
+  }
+  .bnav-item.active::after {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--g700);
+    border-radius: 0 3px 3px 0;
+  }
+  .bnav-icon { font-size: 18px; }
+
+  /* Content area */
+  .page-content {
+    grid-area: content;
+    overflow-y: auto;
+    padding-bottom: 24px;
+    background: var(--bg);
+  }
+
+  /* Tab pages: wider layout */
+  .tab-page { padding: 24px 28px; max-width: 1000px; }
+
+  /* Stats: 4 คอลัมน์บนคอม */
+  .stat-row {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-num { font-size: 38px; }
+
+  /* Payment cards: 2 คอลัมน์ */
+  .payment-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* Reg cards: 3 คอลัมน์ */
+  #regList {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  #regList .reg-card { margin-bottom: 0; }
+
+  /* Manage: 2 คอลัมน์ */
+  #page-manage .form-card-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* FAB ซ่อนบนคอม ใช้ header button แทน */
+  .fab { display: none !important; }
+
+  /* เพิ่มปุ่มทวงเงินใน topnav บนคอม */
+  .topnav-remind {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--orange);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-family: 'Noto Sans Thai', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .topnav-remind:hover { background: #BF360C; }
+
+  /* Modal เป็น centered dialog บนคอม */
+  .modal-overlay { align-items: center; }
+  .modal-sheet {
+    border-radius: 20px;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 28px 28px;
+    transform: scale(0.95) translateY(0);
+    transition: transform .25s cubic-bezier(0.34,1.2,0.64,1), opacity .25s;
+  }
+  .modal-overlay.show .modal-sheet { transform: scale(1) translateY(0); }
+  .modal-handle { display: none; }
+
+  /* Filter scroll ไม่ต้อง scroll บนคอม */
+  .filter-scroll { flex-wrap: wrap; overflow-x: visible; }
+
+  /* Select & search row */
+  .desktop-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .desktop-controls .select-wrap { flex: 1; margin-bottom: 0; }
+  .desktop-controls .search-bar { flex: 1.5; margin-bottom: 0; }
+
+  /* Toast ย้ายไปมุมขวาล่าง */
+  .toast {
+    left: auto;
+    right: 24px;
+    bottom: 24px;
+    max-width: 320px;
+    text-align: left;
+  }
+}
 </style>
 </head>
 <body>
@@ -703,7 +871,8 @@ body {
       <div class="topnav-title">🏫 สภานักเรียน</div>
       <div class="topnav-subtitle" id="topnavSub">แดชบอร์ด</div>
     </div>
-    <button class="topnav-icon" onclick="logout()" title="ออกจากระบบ">↩</button>
+    <button class="topnav-remind" id="topnavRemind" onclick="openRemindModal()" style="display:none">📢 ทวงเงิน</button>
+    <button class="topnav-icon" onclick="logout()" title="ออกจากระกบ">↩</button>
   </div>
 
   <!-- Page content -->
@@ -715,11 +884,17 @@ body {
 
       <div class="section-title">รายการชำระเงิน</div>
 
-      <div class="select-wrap">
-        <select id="topicFilter" onchange="loadDashboard()">
-          <option value="">📋 ทุกหัวข้อ</option>
-        </select>
-        <span class="select-arrow">▾</span>
+      <div class="desktop-controls">
+        <div class="select-wrap" style="margin-bottom:0">
+          <select id="topicFilter" onchange="loadDashboard()">
+            <option value="">📋 ทุกหัวข้อ</option>
+          </select>
+          <span class="select-arrow">▾</span>
+        </div>
+        <div class="search-bar" style="margin-bottom:0">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="searchInputDesktop" placeholder="ค้นหาชื่อ..." oninput="syncSearch(this)" />
+        </div>
       </div>
 
       <div class="filter-scroll" id="statusPills">
@@ -729,7 +904,7 @@ body {
         <button class="pill" onclick="filterStatus('approved',this)">✅ อนุมัติ</button>
       </div>
 
-      <div class="search-bar">
+      <div class="search-bar" id="mobileSearch">
         <span class="search-icon">🔍</span>
         <input type="text" id="searchInput" placeholder="ค้นหาชื่อ..." oninput="renderCards()" />
       </div>
@@ -766,6 +941,7 @@ body {
     <!-- ── MANAGE ── -->
     <div class="tab-page" id="page-manage">
 
+      <div class="form-card-wrap">
       <!-- Add Student -->
       <div class="form-card">
         <div class="form-card-header">👤 เพิ่มนักเรียน</div>
@@ -810,6 +986,8 @@ body {
         </div>
         <div id="topicList"></div>
       </div>
+
+      </div><!-- /form-card-wrap -->
 
       <!-- CSV -->
       <button class="btn-submit" style="background:var(--blue);margin-bottom:12px" onclick="exportCSV()">
@@ -931,7 +1109,11 @@ function showTab(tab) {
     document.getElementById('bnav-' + t).classList.toggle('active', t === tab);
   });
   document.getElementById('topnavSub').textContent = labels[tab];
-  document.getElementById('remindFab').style.display = tab === 'dashboard' ? 'flex' : 'none';
+  const isDesktop = window.innerWidth >= 768;
+  const showRemind = tab === 'dashboard';
+  document.getElementById('remindFab').style.display = (!isDesktop && showRemind) ? 'flex' : 'none';
+  const topnavRemind = document.getElementById('topnavRemind');
+  if (topnavRemind) topnavRemind.style.display = (isDesktop && showRemind) ? 'flex' : 'none';
   if (tab === 'register') loadRegister();
   if (tab === 'manage') loadManageLists();
 }
@@ -947,7 +1129,10 @@ async function loadDashboard() {
   allData = await r.json();
   renderStats();
   renderCards();
-  document.getElementById('remindFab').style.display = 'flex';
+  const _isDesktop = window.innerWidth >= 768;
+  document.getElementById('remindFab').style.display = _isDesktop ? 'none' : 'flex';
+  const _tr = document.getElementById('topnavRemind');
+  if (_tr) _tr.style.display = _isDesktop ? 'flex' : 'none';
 }
 
 function renderStats() {
@@ -1246,6 +1431,21 @@ async function sendRemind() {
   if (result.sent === 0) showToast('✅ ทุกคนจ่ายแล้ว', 'success');
   else showToast(`📤 ส่งทวง ${result.sent} คน`, 'success');
 }
+
+// ── Sync search desktop/mobile ──
+function syncSearch(el) {
+  document.getElementById('searchInput').value = el.value;
+  renderCards();
+}
+
+// ── Responsive: hide/show elements ──
+function applyResponsive() {
+  const isDesktop = window.innerWidth >= 768;
+  const mobileSearch = document.getElementById('mobileSearch');
+  if (mobileSearch) mobileSearch.style.display = isDesktop ? 'none' : 'flex';
+}
+window.addEventListener('resize', applyResponsive);
+document.addEventListener('DOMContentLoaded', applyResponsive);
 
 // ── Toast ──
 function showToast(msg, type = '') {
