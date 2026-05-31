@@ -941,6 +941,24 @@ body {
     <!-- ── MANAGE ── -->
     <div class="tab-page" id="page-manage">
 
+      <div class="form-card-wrap">
+      <!-- Add Student -->
+      <div class="form-card">
+        <div class="form-card-header">👤 เพิ่มนักเรียน</div>
+        <div class="form-card-body">
+          <div class="form-field">
+            <label>ชื่อ-นามสกุล *</label>
+            <input type="text" id="newStudentName" placeholder="เช่น นายสมชาย ใจดี" />
+          </div>
+          <div class="form-field">
+            <label>ชื่อเล่น</label>
+            <input type="text" id="newStudentNickname" placeholder="เช่น โอ๊ต" />
+          </div>
+          <button class="btn-submit" onclick="addStudent()">+ เพิ่มนักเรียน</button>
+        </div>
+        <div id="studentList"></div>
+      </div>
+
       <!-- Add Topic -->
       <div class="form-card">
         <div class="form-card-header">📋 เพิ่มหัวข้อการชำระเงิน</div>
@@ -967,24 +985,6 @@ body {
           <button class="btn-submit" onclick="addTopic()">+ เพิ่มหัวข้อ</button>
         </div>
         <div id="topicList"></div>
-      </div>
-
-      <div class="form-card-wrap">
-      <!-- Add Student -->
-      <div class="form-card">
-        <div class="form-card-header">👤 เพิ่มนักเรียน</div>
-        <div class="form-card-body">
-          <div class="form-field">
-            <label>ชื่อ-นามสกุล *</label>
-            <input type="text" id="newStudentName" placeholder="เช่น นายสมชาย ใจดี" />
-          </div>
-          <div class="form-field">
-            <label>ชื่อเล่น</label>
-            <input type="text" id="newStudentNickname" placeholder="เช่น โอ๊ต" />
-          </div>
-          <button class="btn-submit" onclick="addStudent()">+ เพิ่มนักเรียน</button>
-        </div>
-        <div id="studentList"></div>
       </div>
 
       </div><!-- /form-card-wrap -->
@@ -1029,27 +1029,6 @@ body {
   </div>
 </div>
 
-<!-- EDIT STUDENT MODAL -->
-<div class="modal-overlay" id="editStudentModal">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">✏️ แก้ไขรายชื่อ</div>
-    <input type="hidden" id="editStudentId" />
-    <div class="remind-field">
-      <label>ชื่อ-นามสกุล *</label>
-      <input type="text" class="input-field" id="editStudentName" placeholder="ชื่อ-นามสกุล" style="margin-bottom:12px" />
-    </div>
-    <div class="remind-field">
-      <label>ชื่อเล่น</label>
-      <input type="text" class="input-field" id="editStudentNickname" placeholder="ชื่อเล่น (ไม่บังคับ)" style="margin-bottom:16px" />
-    </div>
-    <div class="modal-btns">
-      <button class="mbt-approve" onclick="saveEditStudent()" style="background:var(--g100);color:var(--g800)">💾 บันทึก</button>
-      <button class="mbt-close" onclick="closeEditStudent()">ยกเลิก</button>
-    </div>
-  </div>
-</div>
-
 <!-- REMIND MODAL -->
 <div class="modal-overlay" id="remindModal">
   <div class="modal-sheet">
@@ -1081,29 +1060,18 @@ let regFilter = 'all';
 
 // ── Login ──
 function doLogin() {
-  const key = document.getElementById('adminKey').value.trim();
-  if (!key) {
-    document.getElementById('loginError').textContent = 'กรุณากรอก Admin Secret Key';
-    document.getElementById('loginError').style.display = 'block';
-    return;
-  }
+  const pw = document.getElementById('adminPassword').value;
+  const key = document.getElementById('adminKey').value;
+  if (!pw || !key) { showToast('กรุณากรอกข้อมูลให้ครบ', 'error'); return; }
   ADMIN_KEY = key;
-  document.getElementById('loginError').style.display = 'none';
-
-  fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } })
-    .then(r => {
-      if (r.ok) {
-        localStorage.setItem('adminKey', ADMIN_KEY);
-        showApp();
-      } else {
-        document.getElementById('loginError').textContent = 'Secret Key ไม่ถูกต้อง';
-        document.getElementById('loginError').style.display = 'block';
-      }
-    })
-    .catch(() => {
-      document.getElementById('loginError').textContent = 'ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่';
+  fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } }).then(r => {
+    if (r.ok) {
+      localStorage.setItem('adminKey', ADMIN_KEY);
+      showApp();
+    } else {
       document.getElementById('loginError').style.display = 'block';
-    });
+    }
+  });
 }
 
 function showApp() {
@@ -1129,9 +1097,6 @@ window.onload = () => {
   }
   document.getElementById('adminKey').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
-});
-document.getElementById('adminPassword').addEventListener('keydown', e => {
-  if (e.key === 'Enter') doLogin();
   });
 };
 
@@ -1398,10 +1363,7 @@ async function loadManageLists() {
             <div class="list-item-name">👤 ${s.name}</div>
             ${s.nickname ? `<div class="list-item-sub">${s.nickname}</div>` : ''}
           </div>
-          <div style="display:flex;gap:6px;flex-shrink:0">
-            <button onclick="openEditStudent('${s.id}','${s.name.replace(/'/g,\"\\'\")}',' ${(s.nickname||'').replace(/'/g,\"\\'\")}')" style="background:var(--blue-pale);color:var(--blue);border:none;border-radius:8px;padding:5px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans Thai',sans-serif">แก้ไข</button>
-            <button class="btn-delete" onclick="deleteStudent('${s.id}','${safe}')">ลบ</button>
-          </div>
+          <button class="btn-delete" onclick="deleteStudent('${s.id}','${safe}')">ลบ</button>
         </div>`;
       }).join('')
     : '<div style="padding:16px;font-size:13px;color:var(--ink3)">ยังไม่มีนักเรียน</div>';
@@ -1420,40 +1382,6 @@ async function loadManageLists() {
         </div>`;
       }).join('')
     : '<div style="padding:16px;font-size:13px;color:var(--ink3)">ยังไม่มีหัวข้อ</div>';
-}
-
-// ── Edit Student ──
-function openEditStudent(id, name, nickname) {
-  document.getElementById('editStudentId').value = id;
-  document.getElementById('editStudentName').value = name;
-  document.getElementById('editStudentNickname').value = nickname.trim();
-  document.getElementById('editStudentModal').classList.add('show');
-}
-
-function closeEditStudent() {
-  document.getElementById('editStudentModal').classList.remove('show');
-}
-
-async function saveEditStudent() {
-  const id = document.getElementById('editStudentId').value;
-  const name = document.getElementById('editStudentName').value.trim();
-  const nickname = document.getElementById('editStudentNickname').value.trim();
-  if (!name) { showToast('กรุณากรอกชื่อ', 'error'); return; }
-
-  const r = await fetch(`/admin/students/${id}`, {
-    method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'x-admin-key': ADMIN_KEY },
-    body: JSON.stringify({ name, nickname })
-  });
-
-  if (r.ok) {
-    showToast('✅ แก้ไขรายชื่อแล้ว', 'success');
-    closeEditStudent();
-    loadManageLists();
-    loadDashboard();
-  } else {
-    showToast('เกิดข้อผิดพลาด', 'error');
-  }
 }
 
 async function deleteStudent(id, name) {
