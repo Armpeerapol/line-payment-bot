@@ -816,19 +816,6 @@ app.get('/admin/dashboard', adminAuth, async (req, res) => {
   res.json(data);
 });
 
-// แก้ไขรายชื่อนักเรียน
-app.patch('/admin/students/:id', adminAuth, async (req, res) => {
-  const { name, nickname } = req.body;
-  if (!name) return res.status(400).json({ error: 'name is required' });
-  const { data, error } = await supabase
-    .from('students')
-    .update({ name, nickname: nickname || null })
-    .eq('id', req.params.id)
-    .select().single();
-  if (error) return res.status(400).json({ error });
-  res.json(data);
-});
-
 // ลบนักเรียน
 app.delete('/admin/students/:id', adminAuth, async (req, res) => {
   const { error } = await supabase.from('students').delete().eq('id', req.params.id);
