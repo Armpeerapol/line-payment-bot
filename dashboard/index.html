@@ -941,6 +941,24 @@ body {
     <!-- ── MANAGE ── -->
     <div class="tab-page" id="page-manage">
 
+      <div class="form-card-wrap">
+      <!-- Add Student -->
+      <div class="form-card">
+        <div class="form-card-header">👤 เพิ่มนักเรียน</div>
+        <div class="form-card-body">
+          <div class="form-field">
+            <label>ชื่อ-นามสกุล *</label>
+            <input type="text" id="newStudentName" placeholder="เช่น นายสมชาย ใจดี" />
+          </div>
+          <div class="form-field">
+            <label>ชื่อเล่น</label>
+            <input type="text" id="newStudentNickname" placeholder="เช่น โอ๊ต" />
+          </div>
+          <button class="btn-submit" onclick="addStudent()">+ เพิ่มนักเรียน</button>
+        </div>
+        <div id="studentList"></div>
+      </div>
+
       <!-- Add Topic -->
       <div class="form-card">
         <div class="form-card-header">📋 เพิ่มหัวข้อการชำระเงิน</div>
@@ -967,24 +985,6 @@ body {
           <button class="btn-submit" onclick="addTopic()">+ เพิ่มหัวข้อ</button>
         </div>
         <div id="topicList"></div>
-      </div>
-
-      <div class="form-card-wrap">
-      <!-- Add Student -->
-      <div class="form-card">
-        <div class="form-card-header">👤 เพิ่มนักเรียน</div>
-        <div class="form-card-body">
-          <div class="form-field">
-            <label>ชื่อ-นามสกุล *</label>
-            <input type="text" id="newStudentName" placeholder="เช่น นายสมชาย ใจดี" />
-          </div>
-          <div class="form-field">
-            <label>ชื่อเล่น</label>
-            <input type="text" id="newStudentNickname" placeholder="เช่น โอ๊ต" />
-          </div>
-          <button class="btn-submit" onclick="addStudent()">+ เพิ่มนักเรียน</button>
-        </div>
-        <div id="studentList"></div>
       </div>
 
       </div><!-- /form-card-wrap -->
