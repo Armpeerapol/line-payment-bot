@@ -1081,18 +1081,29 @@ let regFilter = 'all';
 
 // ── Login ──
 function doLogin() {
-  const pw = document.getElementById('adminPassword').value;
-  const key = document.getElementById('adminKey').value;
-  if (!pw || !key) { showToast('กรุณากรอกข้อมูลให้ครบ', 'error'); return; }
+  const key = document.getElementById('adminKey').value.trim();
+  if (!key) {
+    document.getElementById('loginError').textContent = 'กรุณากรอก Admin Secret Key';
+    document.getElementById('loginError').style.display = 'block';
+    return;
+  }
   ADMIN_KEY = key;
-  fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } }).then(r => {
-    if (r.ok) {
-      localStorage.setItem('adminKey', ADMIN_KEY);
-      showApp();
-    } else {
+  document.getElementById('loginError').style.display = 'none';
+
+  fetch('/admin/dashboard', { headers: { 'x-admin-key': ADMIN_KEY } })
+    .then(r => {
+      if (r.ok) {
+        localStorage.setItem('adminKey', ADMIN_KEY);
+        showApp();
+      } else {
+        document.getElementById('loginError').textContent = 'Secret Key ไม่ถูกต้อง';
+        document.getElementById('loginError').style.display = 'block';
+      }
+    })
+    .catch(() => {
+      document.getElementById('loginError').textContent = 'ไม่สามารถเชื่อมต่อได้ กรุณาลองใหม่';
       document.getElementById('loginError').style.display = 'block';
-    }
-  });
+    });
 }
 
 function showApp() {
@@ -1118,6 +1129,9 @@ window.onload = () => {
   }
   document.getElementById('adminKey').addEventListener('keydown', e => {
     if (e.key === 'Enter') doLogin();
+});
+document.getElementById('adminPassword').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
   });
 };
 
