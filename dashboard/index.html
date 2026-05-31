@@ -856,7 +856,7 @@ body {
       <label>รหัสผ่านแอดมิน</label>
       <input type="password" id="adminPassword" placeholder="••••••••" />
       <label>Admin Secret Key</label>
-      <input type="text" id="adminKey" placeholder="sc.xxxx" />
+      <input type="text" id="adminKey" placeholder="xxxxxx" />
       <button class="btn-login" onclick="doLogin()">เข้าสู่ระบบ</button>
       <div class="login-error" id="loginError">รหัสผ่านไม่ถูกต้อง</div>
     </div>
@@ -965,11 +965,11 @@ body {
         <div class="form-card-body">
           <div class="form-field">
             <label>หัวข้อ *</label>
-            <input type="text" id="newTopicTitle" placeholder="เช่น ค่ากิจกรรมทัศนศึกษา" />
+            <input type="text" id="newTopicTitle" placeholder="เช่น ค่ากิจกรรม หรือ 16/6/2569" />
           </div>
           <div class="form-field">
             <label>จำนวนเงิน (บาท)</label>
-            <input type="number" id="newTopicAmount" placeholder="เช่น 200" />
+            <input type="number" id="newTopicAmount" placeholder="เช่น 50" />
           </div>
           <div class="form-field">
             <label>วันและเวลาครบกำหนด</label>
@@ -979,7 +979,7 @@ body {
             </div>
           </div>
           <div class="form-field">
-            <label>รายละเอียด</label>
+            <label>รายละเอียด(ไม่บังคับ)</label>
             <input type="text" id="newTopicDesc" placeholder="รายละเอียดเพิ่มเติม..." />
           </div>
           <button class="btn-submit" onclick="addTopic()">+ เพิ่มหัวข้อ</button>
